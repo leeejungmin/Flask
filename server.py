@@ -10,6 +10,13 @@ import json
 import io
 from flask_cors import CORS, cross_origin
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
+import time
+from sklearn.src.Component.compareGraph import compairPlot
+
+from sklearn.src.Component.corMatt import corrMatt, findHighCorrList
+from sklearn.src.Component.normalDistribution import normal_dis
+from sklearn.src.Component.selectByMonthThree import combineHorizontalGraph
+from sklearn.src.Component.baseGraph import pointPlot
 
 
 def concatenate_point_item(train):
@@ -20,6 +27,7 @@ def concatenate_year_month(datetime):
     return "{0}-{1}".format(datetime.year, datetime.month)
 
 
+mpl.use('Agg')
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy   dog'
@@ -91,53 +99,6 @@ def toBase64(fig):
     return pic_hash.decode('utf-8')
 
 
-def corrMatt(train):
-    corrMatt = train[["holiday", "Man",
-                      "duration", "humidity", "item", "result"]]
-    corrMatt = corrMatt.corr()
-    mask = np.array(corrMatt)
-    mask[np.tril_indices_from(mask)] = False
-
-    fig, ax = plt.subplots()
-    fig.set_size_inches(20, 10)
-    sns.heatmap(corrMatt, mask=mask, vmax=.8, square=True, annot=True)
-
-    return toBase64(fig)
-
-
-def normal_dis(train, Inspection, item, point):
-    fig, axes = plt.subplots(ncols=2, nrows=2)
-    fig.set_size_inches(12, 10)
-
-    train = train.loc[(train["Inspection Name"] == 1)]
-    print('train["point"].value_counts()', train["point"].value_counts())
-
-    predicted_num1 = train.loc[
-        (train["Inspection Name"] == Inspection) &
-        (train["point"] == 1)
-    ]
-
-    predicted_num2 = train.loc[
-        (train["Inspection Name"] == Inspection) &
-        (train["point"] == 2)
-    ]
-    predicted_num3 = train.loc[
-        (train["Inspection Name"] == Inspection) &
-        (train["point"] == 3)
-    ]
-    predicted_num4 = train.loc[
-        (train["Inspection Name"] == Inspection) &
-        (train["point"] == 4)
-    ]
-
-    sns.distplot(predicted_num1["result"], ax=axes[0][0])
-    sns.distplot(predicted_num2["result"], ax=axes[0][1])
-    sns.distplot(predicted_num3["result"], ax=axes[1][0])
-    sns.distplot(predicted_num4["result"], ax=axes[1][1])
-
-    return toBase64(fig)
-
-
 def selected_num(train, Year, Month, Inspection, item, point):
     predicted_num = train.loc[(train["year"] == Year) &
                               (train["Inspection Name"] == 1) &
@@ -167,7 +128,7 @@ def combineGraph(data, c_year, c_month, Inspection, item, point):
 
     standard = 59
     standard_point = [standard]*5
-    plt.plot(xlabel, standard_point, color='red', alpha=0.5)
+    plt.plot(xlabel, standard_point, color='firebrick', alpha=0.5)
 
     label = [prev_port, cur_port, next_port]
 
@@ -184,11 +145,11 @@ def combineGraph(data, c_year, c_month, Inspection, item, point):
 
     print('prev_port_count', prev_port_count)
     if prev_port_count > standard:
-        prev_c = 'r'
+        prev_c = 'firebrick'
     if cur_port_count > standard:
-        cur_c = 'r'
+        cur_c = 'firebrick'
     if next_port_count > standard:
-        next_c = 'r'
+        next_c = 'firebrick'
 
     p1 = plt.bar(1, prev_port_count,
                  bar_width,
@@ -226,6 +187,25 @@ def combineGraph(data, c_year, c_month, Inspection, item, point):
                cur_port, next_port), fontsize=10)
 
     return toBase64(plt)
+
+
+def linegraph(test):
+    alpha = 0.3
+    color = 'blue'
+    trainWCondition = test.loc[(test["year"] == 2019) & (
+        test["Inspection Name"] == 1) & (test["item"] == 2) & (test["point"] == 1)]
+
+    fig, (ax1) = plt.subplots(nrows=1)
+    fig.set_size_inches(5, 5)
+    sns.lineplot(data=trainWCondition, x="month", y="result",
+                 color=color, ax=ax1, alpha=alpha)
+
+    plt.gca().spines['top'].set_visible(False)
+    plt.gca().spines['right'].set_visible(False)
+    plt.gca().spines['left'].set_visible(False)
+    plt.gca().spines['bottom'].set_visible(False)
+
+    return toBase64(fig)
 
 
 def showThreePlot(data, c_year, c_month, Inspection, item, point):
@@ -272,6 +252,7 @@ def showThreePlot(data, c_year, c_month, Inspection, item, point):
     ax3.set_ylim(0, 150)
     ax3.legend(fontsize=5)
 
+    plt.grid(b=None)
     # figure.ax1.get_yaxis().set_visible(False)
     return toBase64(figure)
 
@@ -334,12 +315,12 @@ def pointPlotByYearMonth2(train, Year, Month, Inspection, Item):
     return toBase64(fig)
 
 
-def pointPlot(train):
+def linePlot(train):
 
     fig, (ax1) = plt.subplots(nrows=1)
 
-    fig.set_size_inches(20, 10)
-
+    fig.set_size_inches(15, 5)
+    # sns.set_theme(style="darkgrid")
     sns.barplot(data=train, x="month", y="result",
                 hue="Man", ax=ax1, color="blue", alpha=0.5)
     ax1.legend(fontsize=14)
@@ -493,7 +474,6 @@ def normalDis():
         Inspection = int(data['selectN'])
         Point = int(data['selectP'])
         Item = int(data['selectI'])
-        print(data)
 
         normalDisImage = normal_dis(train, Inspection, Item, Point)
 
@@ -503,15 +483,10 @@ def normalDis():
 @ app.route("/corrMattImage",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def corrMattImage():
-    corrMattimage = corrMatt(train)
+    if request.method == 'POST':
+        corrMattimage = corrMatt(train)
+
     return {"base64": corrMattimage}
-
-
-@ app.route("/baseGraph",  methods=['GET', 'POST'])
-@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
-def baseGraph():
-    pointimage = pointPlot(train)
-    return {"base64": pointimage}
 
 
 @ app.route("/selectByYear",  methods=['GET', 'POST'])
@@ -533,19 +508,29 @@ def selectByYear():
     return {"base64": pointImage}
 
 
+@ app.route("/baseGraph",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def baseGraph():
+    if request.method == 'GET':
+        time.sleep(1.5)
+        barImage = pointPlot(train)
+
+    return {"base64": barImage}
+
+
 @ app.route("/selectByMonthThree",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def selectByMonthThree():
-    if request.method == 'POST':
+    if request.method == 'GET':
 
-        data = request.get_json()["data"]
+        # data = request.get_json()
 
-        print(data)
-        Year = int(data['selectY'])
-        Month = int(data['selectM'])
-        Inspection = int(data['selectN'])
-        Point = int(data['selectP'])
-        Item = int(data['selectI'])
+        # print('selectByMonthThree.....', data)
+        # Year = int(data['selectY'])
+        # Month = int(data['selectM'])
+        # Inspection = int(data['selectN'])
+        # Point = int(data['selectP'])
+        # Item = int(data['selectI'])
 
         Year = 2021
         Month = 8
@@ -553,10 +538,61 @@ def selectByMonthThree():
         Item = 2
         Point = 1
 
-        combineGraphImage = combineGraph(
+        combineHorizontalGraphImage = combineHorizontalGraph(
             test, Year, Month, Inspection, Item, Point)
-        print('.........', combineGraphImage)
-    return {"base64": combineGraphImage}
+        # time.sleep(2.5)
+    return {"base64": combineHorizontalGraphImage}
+
+
+@ app.route("/compairPlotGraph",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def compairPlotGraph():
+    if request.method == 'POST':
+
+        # data = request.get_json()
+
+        # print('selectByMonthThree.....', data)
+        # Year = int(data['selectY'])
+        # Month = int(data['selectM'])
+        # Inspection = int(data['selectN'])
+        # Point = int(data['selectP'])
+        # Item = int(data['selectI'])
+
+        Year = 2021
+        Month = 8
+        Inspection = 1
+        xVariable = "humidity"
+        yVariable = "duration"
+
+        compairPlotImage = compairPlot(
+            test, xVariable, yVariable, Inspection)
+
+    return {"base64": compairPlotImage}
+
+
+@ app.route("/findHighCorr",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def findHighCorr():
+    if request.method == 'POST':
+
+        # data = request.get_json()
+
+        # print('selectByMonthThree.....', data)
+        # Year = int(data['selectY'])
+        # Month = int(data['selectM'])
+        # Inspection = int(data['selectN'])
+        # Point = int(data['selectP'])
+        # Item = int(data['selectI'])
+
+        Year = 2021
+        Month = 8
+        Inspection = 1
+        xVariable = "humidity"
+        yVariable = "duration"
+
+        findHighCorrImage = findHighCorrList(test)
+
+    return {"base64": findHighCorrImage}
 
 
 @ app.route("/jung")
@@ -570,4 +606,5 @@ def min():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(threaded=False, debug=True)
+    #  app.run(threaded=False, debug=True,  processes=5)
