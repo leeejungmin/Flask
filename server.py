@@ -452,7 +452,7 @@ def SeasonGraph(data, Year, Inspection, item, point):
 def SeasonGraph():
     if request.method == 'POST':
 
-        data = request.get_json()["data"]
+        data = request.get_json()["data"]['valueGraph']
         Year = int(data['selectY'])
         Month = int(data['selectM'])
         Inspection = int(data['selectN'])
@@ -468,7 +468,7 @@ def SeasonGraph():
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def normalDis():
     if request.method == 'POST':
-        data = request.get_json()["data"]
+        data = request.get_json()["data"]['valueGraph']
         Year = int(data['selectY'])
         Month = int(data['selectM'])
         Inspection = int(data['selectN'])
@@ -487,7 +487,8 @@ def normalDis():
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def corrMattImage():
     if request.method == 'POST':
-        data = request.get_json()["data"]
+        data = request.get_json()["data"]['valueGraph']
+
         Inspection = int(data['selectN'])
         corrMattimage = corrMatt(train, Inspection)
 
@@ -499,7 +500,7 @@ def corrMattImage():
 def selectByYear():
     if request.method == 'POST':
 
-        data = request.get_json()["data"]
+        data = request.get_json()["data"]['valueGraph']
         Year = int(data['selectY'])
         Month = int(data['selectM'])
         Inspection = int(data['selectN'])
@@ -564,8 +565,8 @@ def compairPlotGraph():
         # Item = int(data['selectI'])
         Variable = data['data']
         print("Variable...............", Variable)
-        Year = 2021
-        Month = 8
+        # Year = 2021
+        # Month = 8
         Inspection = 1
         xVariable = Variable[0]
         yVariable = Variable[1]
@@ -581,7 +582,7 @@ def compairPlotGraph():
 def findHighCorr():
     if request.method == 'POST':
 
-        data = request.get_json()['data']
+        data = request.get_json()['data']['valueGraph']
 
         # print('selectByMonthThree.....', data)
         # Year = int(data['selectY'])
