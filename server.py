@@ -229,7 +229,7 @@ def showThreePlot(data, c_year, c_month, Inspection, item, point):
 
     figure, (ax1, ax2, ax3) = plt.subplots(1, 3)
     plt.ylim(0, 150)
-    plt.figure(figsize=(5, 2))
+    plt.figure(figsize=(1, 4))
     bar_width = 0.35
     x = np.arange(1, len(dst_ports)+2)
 
@@ -475,7 +475,10 @@ def normalDis():
         Point = int(data['selectP'])
         Item = int(data['selectI'])
 
-        normalDisImage = normal_dis(train, Inspection, Item, Point)
+        Inspection = 1
+        Point = 1
+
+        normalDisImage = normal_dis(test, Inspection, Point)
 
     return {"base64": normalDisImage}
 
@@ -484,7 +487,9 @@ def normalDis():
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def corrMattImage():
     if request.method == 'POST':
-        corrMattimage = corrMatt(train)
+        data = request.get_json()["data"]
+        Inspection = int(data['selectN'])
+        corrMattimage = corrMatt(train, Inspection)
 
     return {"base64": corrMattimage}
 
@@ -549,7 +554,7 @@ def selectByMonthThree():
 def compairPlotGraph():
     if request.method == 'POST':
 
-        # data = request.get_json()
+        data = request.get_json()
 
         # print('selectByMonthThree.....', data)
         # Year = int(data['selectY'])
@@ -557,12 +562,13 @@ def compairPlotGraph():
         # Inspection = int(data['selectN'])
         # Point = int(data['selectP'])
         # Item = int(data['selectI'])
-
+        Variable = data['data']
+        print("Variable...............", Variable)
         Year = 2021
         Month = 8
         Inspection = 1
-        xVariable = "humidity"
-        yVariable = "duration"
+        xVariable = Variable[0]
+        yVariable = Variable[1]
 
         compairPlotImage = compairPlot(
             test, xVariable, yVariable, Inspection)
@@ -575,22 +581,23 @@ def compairPlotGraph():
 def findHighCorr():
     if request.method == 'POST':
 
-        # data = request.get_json()
+        data = request.get_json()['data']
 
         # print('selectByMonthThree.....', data)
         # Year = int(data['selectY'])
         # Month = int(data['selectM'])
-        # Inspection = int(data['selectN'])
+        Inspection = int(data['selectN'])
+
         # Point = int(data['selectP'])
         # Item = int(data['selectI'])
 
         Year = 2021
         Month = 8
-        Inspection = 1
-        xVariable = "humidity"
-        yVariable = "duration"
+        # Inspection = 1
+        # xVariable = "humidity"
+        # yVariable = "duration"
 
-        findHighCorrImage = findHighCorrList(test)
+        findHighCorrImage = findHighCorrList(test, Inspection)
 
     return {"base64": findHighCorrImage}
 
