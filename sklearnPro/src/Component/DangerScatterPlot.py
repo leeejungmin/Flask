@@ -9,7 +9,7 @@ from scipy import stats
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 import time
 
-from sklearnProject.src.Component.preprocess import nameCategory, toBase64
+from sklearnPro.src.Component.preprocess import nameCategory, toBase64
 
 
 mpl.use('Qt5Agg')
