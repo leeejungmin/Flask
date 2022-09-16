@@ -11,6 +11,7 @@ import io
 from flask_cors import CORS, cross_origin
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 import time
+import py_eureka_client.eureka_client as eureka_client
 
 from sklearnPro.src.Component.DangerScatterPlot import DangerScatterChartByMonth, DangerScatterChartByMonthPeriod, DangerScatterChartByQuater
 from sklearnPro.src.Component.PredictModel import predictModel
@@ -30,6 +31,14 @@ def concatenate_point_item(train):
 def concatenate_year_month(datetime):
     return "{0}-{1}".format(datetime.year, datetime.month)
 
+
+# rest_port = 5000
+eureka_client.init(
+    # http://44.234.112.21/
+    eureka_server="http://44.234.112.21:8761/eureka",
+    app_name="flask_graph_server",
+    # instance_port=rest_port
+)
 
 mpl.use('Agg')
 app = Flask(__name__)
