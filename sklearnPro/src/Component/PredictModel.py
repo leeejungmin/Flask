@@ -3,7 +3,6 @@ from sklearn.metrics import make_scorer
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestRegressor
-import tkinter
 from flask import Flask, send_file, request, Response, jsonify
 import pandas as pd
 import numpy as np
