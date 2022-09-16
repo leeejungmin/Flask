@@ -12,15 +12,15 @@ from flask_cors import CORS, cross_origin
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 import time
 
-from sklearnProject.src.Component.DangerScatterPlot import DangerScatterChartByMonth, DangerScatterChartByMonthPeriod, DangerScatterChartByQuater
-from sklearnProject.src.Component.PredictModel import predictModel
-from sklearnProject.src.Component.compareGraph import compairPlot, toBase64
-from sklearnProject.src.Component.corMatt import corrMatt, findHighCorrList
-from sklearnProject.src.Component.normalDistribution import normal_dis
-from sklearnProject.src.Component.preprocess import selected_num
-from sklearnProject.src.Component.selectByMonthThree import combineHorizontalGraph
-from sklearnProject.src.Component.baseGraph import pointPlot
-from sklearnProject.src.Component.showThreePeriod import lineWithBarplotWithYear
+from sklearnPro.src.Component.DangerScatterPlot import DangerScatterChartByMonth, DangerScatterChartByMonthPeriod, DangerScatterChartByQuater
+from sklearnPro.src.Component.PredictModel import predictModel
+from sklearnPro.src.Component.compareGraph import compairPlot, toBase64
+from sklearnPro.src.Component.corMatt import corrMatt, findHighCorrList
+from sklearnPro.src.Component.normalDistribution import normal_dis
+from sklearnPro.src.Component.preprocess import selected_num
+from sklearnPro.src.Component.selectByMonthThree import combineHorizontalGraph
+from sklearnPro.src.Component.baseGraph import pointPlot
+from sklearnPro.src.Component.showThreePeriod import lineWithBarplotWithYear
 
 
 def concatenate_point_item(train):
