@@ -11,12 +11,16 @@ import io
 from flask_cors import CORS, cross_origin
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 import time
-from sklearn.src.Component.compareGraph import compairPlot
 
-from sklearn.src.Component.corMatt import corrMatt, findHighCorrList
-from sklearn.src.Component.normalDistribution import normal_dis
-from sklearn.src.Component.selectByMonthThree import combineHorizontalGraph
-from sklearn.src.Component.baseGraph import pointPlot
+from sklearnProject.src.Component.DangerScatterPlot import DangerScatterChartByMonth, DangerScatterChartByMonthPeriod, DangerScatterChartByQuater
+from sklearnProject.src.Component.PredictModel import predictModel
+from sklearnProject.src.Component.compareGraph import compairPlot, toBase64
+from sklearnProject.src.Component.corMatt import corrMatt, findHighCorrList
+from sklearnProject.src.Component.normalDistribution import normal_dis
+from sklearnProject.src.Component.preprocess import selected_num
+from sklearnProject.src.Component.selectByMonthThree import combineHorizontalGraph
+from sklearnProject.src.Component.baseGraph import pointPlot
+from sklearnProject.src.Component.showThreePeriod import lineWithBarplotWithYear
 
 
 def concatenate_point_item(train):
@@ -37,18 +41,7 @@ CORS(app)
 mpl.rcParams['axes.unicode_minus'] = False
 
 train = pd.read_csv("data/data/team5train2.csv", parse_dates=["date"])
-train.shape
 test = pd.read_csv("data/data/team5test2.csv", parse_dates=["date"])
-
-train.head()
-
-# train = train.loc[(train["Inspection Name"] == "Hydraulic System Check") & (
-#     train["point"] == "coupling")]
-train["year"] = train["date"].dt.year
-train["month"] = train["date"].dt.month
-
-
-train["year_month"] = train["date"].apply(concatenate_year_month)
 
 categorical_feature_names = ["Inspection Name", "holiday",
                              "Man", "duration", "humidity", "item", "date", "result"]
@@ -57,13 +50,18 @@ title_mapping = {"Hydraulic System Check": 1, "Camshaft": 2, "Cylinder": 3, "Eng
 point_mapping = {'coupling': 1, 'oil': 2, 'tank': 3, ' in the filter': 4, 'fuelRail': 5, 'bearing': 6,
                  'same position(vertical)': 7, 'bearing cover': 8, 'gear': 9, 'coolant': 10, 'cooling fan': 11, 'roller': 12, 'in the filter': 13, 'pump': 14, 'o-ring': 15}
 
+train["year"] = train["date"].dt.year
+train["month"] = train["date"].dt.month
+train["year_month"] = train["date"].apply(concatenate_year_month)
+
+
 train['Inspection Name'] = train['Inspection Name'].map(title_mapping)
 test['Inspection Name'] = test['Inspection Name'].map(title_mapping)
 train['point'] = train['point'].map(point_mapping)
 test['point'] = test['point'].map(point_mapping)
 
 
-dr = pd.date_range(start='2018-01-01', end='2022-12-31')
+dr = pd.date_range(start='2015-01-01', end='2025-12-31')
 df = pd.DataFrame()
 df['Date'] = dr
 cal = calendar()
@@ -90,22 +88,45 @@ test.loc[test["holiday"] == True, "holiday"] = 0
 test.loc[test["holiday"] == False, "holiday"] = 1
 
 
-def toBase64(fig):
-    pic_IObytes = io.BytesIO()
-    fig.savefig(pic_IObytes,  format='png')
-    pic_IObytes.seek(0)
-    pic_hash = base64.b64encode(pic_IObytes.read())
+train.loc[(train["month"] == 1) | (train["month"] == 2)
+          | (train["month"] == 3), "season"] = 0
+train.loc[(train["month"] == 4) | (train["month"] == 5)
+          | (train["month"] == 6), "season"] = 1
+train.loc[(train["month"] == 7) | (train["month"] == 8)
+          | (train["month"] == 9), "season"] = 2
+train.loc[(train["month"] == 10) | (train["month"] == 11)
+          | (train["month"] == 12), "season"] = 3
 
-    return pic_hash.decode('utf-8')
+test.loc[(test["month"] == 1) | (test["month"] == 2)
+         | (test["month"] == 3), "season"] = 0
+test.loc[(test["month"] == 4) | (test["month"] == 5)
+         | (test["month"] == 6), "season"] = 1
+test.loc[(test["month"] == 7) | (test["month"] == 8)
+         | (test["month"] == 9), "season"] = 2
+test.loc[(test["month"] == 10) | (test["month"] == 11)
+         | (test["month"] == 12), "season"] = 3
+
+train.loc[(train["month"] == 1) | (train["month"] == 2)
+          | (train["month"] == 3), "quarter"] = 1
+train.loc[(train["month"] == 4) | (train["month"] == 5)
+          | (train["month"] == 6), "quarter"] = 2
+train.loc[(train["month"] == 7) | (train["month"] == 8)
+          | (train["month"] == 9), "quarter"] = 3
+train.loc[(train["month"] == 10) | (train["month"] == 11)
+          | (train["month"] == 12), "quarter"] = 4
+
+test.loc[(test["month"] == 1) | (test["month"] == 2)
+         | (test["month"] == 3), "quarter"] = 1
+test.loc[(test["month"] == 4) | (test["month"] == 5)
+         | (test["month"] == 6), "quarter"] = 2
+test.loc[(test["month"] == 7) | (test["month"] == 8)
+         | (test["month"] == 9), "quarter"] = 3
+test.loc[(test["month"] == 10) | (test["month"] == 11)
+         | (test["month"] == 12), "quarter"] = 4
 
 
-def selected_num(train, Year, Month, Inspection, item, point):
-    predicted_num = train.loc[(train["year"] == Year) &
-                              (train["Inspection Name"] == 1) &
-                              (train["month"] == Month) &
-                              (train["item"] == 2) &
-                              (train["point"] == 1)]
-    return (int(predicted_num['result']))
+train["year_month"] = train["date"].apply(concatenate_year_month)
+test["year_month"] = test["date"].apply(concatenate_year_month)
 
 
 def combineGraph(data, c_year, c_month, Inspection, item, point):
@@ -280,11 +301,6 @@ def pointPlotByYearMonth(train, Year, Month, Inspection, Item):
     sns.barplot(data=train, x="month", y="result",
                 hue="Man", ax=ax1, color="blue", alpha=0.5)
     plt.legend(fontsize=14)
-    # sns.barplot(data=train, x="month", y="result", hue="item", ax=ax2)
-
-    # sns.pointplot(data=train, x="month", y="result", hue="duration", ax=ax3)
-
-    # sns.pointplot(data=train, x="month", y="result", hue="point", ax=ax4)
 
     return toBase64(fig)
 
@@ -327,11 +343,6 @@ def linePlot(train):
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)
     ax1.spines['bottom'].set_visible(False)
-    # sns.barplot(data=train, x="month", y="result", hue="item", ax=ax2)
-
-    # sns.pointplot(data=train, x="month", y="result", hue="duration", ax=ax3)
-
-    # sns.pointplot(data=train, x="month", y="result", hue="point", ax=ax4)
 
     return toBase64(fig)
 
@@ -601,6 +612,88 @@ def findHighCorr():
         findHighCorrImage = findHighCorrList(test, Inspection)
 
     return {"base64": findHighCorrImage}
+
+
+@ app.route("/dangerFindAllByPeriod",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def dangerFindAllByPeriod():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+        print(data)
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+
+        dangerFindAllByPeriodImage = DangerScatterChartByMonthPeriod(
+            test, Inspection, Year, Month, stdMultiple, typePeriod)
+
+    return {"base64": dangerFindAllByPeriodImage}
+
+
+@ app.route("/dangerFindAllMonth",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def dangerFindAllMonth():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+
+        DangerScatterChartByMonthImage = DangerScatterChartByMonth(
+            test, Year, Month, stdMultiple)
+
+    return {"base64": DangerScatterChartByMonthImage}
+
+
+@ app.route("/dangerFindQuater",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def dangerFindQuater():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+        print(data)
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+
+        DangerScatterChartByQuaterImage = DangerScatterChartByQuater(
+            test, Year, stdMultiple)
+
+    return {"base64": DangerScatterChartByQuaterImage}
+
+
+@ app.route("/lineWithBarplotYear",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def lineWithBarplotYear():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+        print('.....................', data)
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+        Point = int(data['selectP'])
+        Item = int(data['selectI'])
+
+        #  (test,predictModel(train), 2021, 1, 2, 1)
+        lineWithBarplotWithYearImage = lineWithBarplotWithYear(
+            test, predictModel(train), Year, Inspection, Item, Point)
+
+    return {"base64": lineWithBarplotWithYearImage}
 
 
 @ app.route("/jung")
