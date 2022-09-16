@@ -1,4 +1,3 @@
-import tkinter
 from flask import Flask, send_file, request, Response, jsonify
 import pandas as pd
 import numpy as np
