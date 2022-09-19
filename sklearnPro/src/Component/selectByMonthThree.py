@@ -36,9 +36,9 @@ def combineHorizontalGraph(data, c_year, c_month, Inspection, item, point):
 
     plt.show()
 
-    plt.figure(figsize=(5, 8))
+    plt.figure(figsize=(10, 5))
     bar_width = 0.39
-    alpha = 0.35
+    alpha = 0.7
 
     c_year = c_year
     p_year = c_year-1
@@ -60,7 +60,7 @@ def combineHorizontalGraph(data, c_year, c_month, Inspection, item, point):
     standard = 59
     standard_point = [standard]*5
 #     plt.ayline(xlabel, standard_point, color='red', alpha=0.5)
-    plt.axvline(x=standard)
+    plt.axvline(x=standard, linewidth=3, color='orange', linestyle='--')
 
     label = [prev_port, cur_port, next_port]
 
@@ -70,7 +70,8 @@ def combineHorizontalGraph(data, c_year, c_month, Inspection, item, point):
         data, c_year, c_month, Inspection, item, point)
     next_port_count = selected_num(
         data, c_year, c_month+1, Inspection, item, point)
-    red_color = 'firebrick'
+    # red_color = 'firebrick'
+    red_color = 'orange'
 
     prev_c = 'b'
     cur_c = 'b'
@@ -116,13 +117,12 @@ def combineHorizontalGraph(data, c_year, c_month, Inspection, item, point):
     # plt.gca().spines['left'].set_visible(False)
     plt.gca().spines['bottom'].set_visible(False)
 
-    plt.title('hydraulic System',  fontsize=10)
     plt.xlabel(' ', fontsize=8)
-    plt.ylabel('Month', fontsize=7)
-    plt.yticks(x, label, fontsize=8)
-
-    plt.legend((p1[0], p2[0], p3[0]), (prev_port_label,
-               cur_port_label, next_port_label), fontsize=10)
+    # plt.ylabel('Month', fontsize=7)
+    plt.yticks(x, label, fontsize=15)
+    # plt.xticks(y, label, fontsize=20)
+    # plt.legend((p1[0], p2[0], p3[0]), (prev_port_label,
+    #            cur_port_label, next_port_label), fontsize=10)
 
     result = toBase64(plt)
 

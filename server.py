@@ -32,12 +32,13 @@ def concatenate_year_month(datetime):
     return "{0}-{1}".format(datetime.year, datetime.month)
 
 
-# rest_port = 5000
+rest_port = 5000
 eureka_client.init(
     # http://44.234.112.21/
-    eureka_server="http://44.234.112.21:8761/eureka",
-    app_name="flask_graph_server",
-    # instance_port=rest_port
+    # eureka_server="http://44.234.112.21:8761/eureka",
+    eureka_server="http://localhost:8761/eureka",
+    app_name="flask-graph-server",
+    instance_port=rest_port
 )
 
 mpl.use('Agg')
@@ -264,23 +265,26 @@ def showThreePlot(data, c_year, c_month, Inspection, item, point):
     x = np.arange(1, len(dst_ports)+2)
 
     ax1.bar(prev_port, prev_port_count,
-            color="blue", alpha=0.5, width=0.1)
+            color="blue", alpha=0.8, width=0.1)
     ax1.set(ylabel='prediction')
 
     ax1.set_ylim(0, 150)
-    plt.legend(fontsize=15)
+    # plt.legend(fontsize=15)
 
     ax2.bar(cur_port, cur_port_count,
-            color="blue", alpha=0.5, width=0.1)
+            color="blue", alpha=0.8, width=0.1)
     ax2.set()
     ax2.set_ylim(0, 150)
-    ax2.legend(fontsize=5)
+    # ax2.legend(fontsize=5)
 
     ax3.bar(next_port, next_port_count,
-            color="red", alpha=0.5, width=0.1)
+            color="red", alpha=0.8, width=0.1)
     ax3.set()
     ax3.set_ylim(0, 150)
-    ax3.legend(fontsize=5)
+    # ax3.legend(fontsize=5)
+    ax1.get_legend().remove()
+    ax2.get_legend().remove()
+    ax3.get_legend().remove()
 
     plt.grid(b=None)
     # figure.ax1.get_yaxis().set_visible(False)
@@ -467,7 +471,7 @@ def SeasonGraph(data, Year, Inspection, item, point):
     return toBase64(plt)
 
 
-@ app.route("/SeasonGraph",  methods=['GET', 'POST'])
+@ app.route("/graph/SeasonGraph",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def SeasonGraph():
     if request.method == 'POST':
@@ -484,7 +488,7 @@ def SeasonGraph():
     return {"base64": SeasonGraphImage}
 
 
-@ app.route("/normalDis",  methods=['GET', 'POST'])
+@ app.route("/graph/normalDis",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def normalDis():
     if request.method == 'POST':
@@ -503,7 +507,7 @@ def normalDis():
     return {"base64": normalDisImage}
 
 
-@ app.route("/corrMattImage",  methods=['GET', 'POST'])
+@ app.route("/graph/corrMattImage",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def corrMattImage():
     if request.method == 'POST':
@@ -515,7 +519,7 @@ def corrMattImage():
     return {"base64": corrMattimage}
 
 
-@ app.route("/selectByYear",  methods=['GET', 'POST'])
+@ app.route("/graph/selectByYear",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def selectByYear():
     if request.method == 'POST':
@@ -534,7 +538,7 @@ def selectByYear():
     return {"base64": pointImage}
 
 
-@ app.route("/baseGraph",  methods=['GET', 'POST'])
+@ app.route("/graph/baseGraph",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def baseGraph():
     if request.method == 'GET':
@@ -544,19 +548,21 @@ def baseGraph():
     return {"base64": barImage}
 
 
-@ app.route("/selectByMonthThree",  methods=['GET', 'POST'])
+@ app.route("/graph/selectByMonthThree",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def selectByMonthThree():
     if request.method == 'GET':
 
-        # data = request.get_json()
+        data = request.get_json()['data']['valueGraph']
+        print(data)
 
-        # print('selectByMonthThree.....', data)
-        # Year = int(data['selectY'])
-        # Month = int(data['selectM'])
-        # Inspection = int(data['selectN'])
-        # Point = int(data['selectP'])
-        # Item = int(data['selectI'])
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+        Point = int(data['selectP'])
+        Item = int(data['selectI'])
 
         Year = 2021
         Month = 8
@@ -570,7 +576,7 @@ def selectByMonthThree():
     return {"base64": combineHorizontalGraphImage}
 
 
-@ app.route("/compairPlotGraph",  methods=['GET', 'POST'])
+@ app.route("/graph/compairPlotGraph",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def compairPlotGraph():
     if request.method == 'POST':
@@ -597,33 +603,24 @@ def compairPlotGraph():
     return {"base64": compairPlotImage}
 
 
-@ app.route("/findHighCorr",  methods=['GET', 'POST'])
+@ app.route("/graph/findHighCorr",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def findHighCorr():
     if request.method == 'POST':
 
         data = request.get_json()['data']['valueGraph']
 
-        # print('selectByMonthThree.....', data)
-        # Year = int(data['selectY'])
-        # Month = int(data['selectM'])
         Inspection = int(data['selectN'])
-
-        # Point = int(data['selectP'])
-        # Item = int(data['selectI'])
 
         Year = 2021
         Month = 8
-        # Inspection = 1
-        # xVariable = "humidity"
-        # yVariable = "duration"
 
         findHighCorrImage = findHighCorrList(test, Inspection)
 
     return {"base64": findHighCorrImage}
 
 
-@ app.route("/dangerFindAllByPeriod",  methods=['GET', 'POST'])
+@ app.route("/graph/dangerFindAllByPeriod",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def dangerFindAllByPeriod():
     if request.method == 'POST':
@@ -643,7 +640,7 @@ def dangerFindAllByPeriod():
     return {"base64": dangerFindAllByPeriodImage}
 
 
-@ app.route("/dangerFindAllMonth",  methods=['GET', 'POST'])
+@ app.route("/graph/dangerFindAllMonth",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def dangerFindAllMonth():
     if request.method == 'POST':
@@ -662,7 +659,7 @@ def dangerFindAllMonth():
     return {"base64": DangerScatterChartByMonthImage}
 
 
-@ app.route("/dangerFindQuater",  methods=['GET', 'POST'])
+@ app.route("/graph/dangerFindQuater",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def dangerFindQuater():
     if request.method == 'POST':
@@ -682,7 +679,7 @@ def dangerFindQuater():
     return {"base64": DangerScatterChartByQuaterImage}
 
 
-@ app.route("/lineWithBarplotYear",  methods=['GET', 'POST'])
+@ app.route("/graph/lineWithBarplotYear",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def lineWithBarplotYear():
     if request.method == 'POST':
@@ -705,12 +702,12 @@ def lineWithBarplotYear():
     return {"base64": lineWithBarplotWithYearImage}
 
 
-@ app.route("/jung")
+@ app.route("/graph/jung")
 def jung():
     return {"good": ["lee", "jung", "min"]}
 
 
-@ app.route("/min")
+@ app.route("/graph/min")
 def min():
     return {"result": train.head(10)}
 
