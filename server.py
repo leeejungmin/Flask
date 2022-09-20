@@ -32,15 +32,15 @@ def concatenate_year_month(datetime):
     return "{0}-{1}".format(datetime.year, datetime.month)
 
 
-rest_port = 5000
-eureka_client.init(
-    # http://44.234.112.21/
-    # http://172.31.62.127:8761/eureka
-    eureka_server="http://172.31.62.127:8761/eureka",
-    # eureka_server="http://localhost:8761/eureka",
-    app_name="flask-graph-server",
-    instance_port=rest_port
-)
+# rest_port = 5000
+# eureka_client.init(
+#     # http://44.234.112.21/
+#     # http://172.31.62.127:8761/eureka
+#     eureka_server="http://172.31.62.127:8761/eureka",
+#     # eureka_server="http://localhost:8761/eureka",
+#     app_name="flask-graph-server",
+#     instance_port=rest_port
+# )
 
 mpl.use('Agg')
 app = Flask(__name__)
