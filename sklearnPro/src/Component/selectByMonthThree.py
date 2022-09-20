@@ -34,8 +34,8 @@ def selected_num(train, Year, Month, Inspection, item, point):
 
 def combineHorizontalGraph(data, c_year, c_month, Inspection, item, point):
 
-    plt.show()
-
+    # plt.show()
+    print('hreee....................', c_year)
     plt.figure(figsize=(10, 5))
     bar_width = 0.39
     alpha = 0.7

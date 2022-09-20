@@ -13,7 +13,7 @@ from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 import time
 import py_eureka_client.eureka_client as eureka_client
 
-from sklearnPro.src.Component.DangerScatterPlot import DangerScatterChartByMonth, DangerScatterChartByMonthPeriod, DangerScatterChartByQuater
+from sklearnPro.src.Component.DangerScatterPlot import DangerScatterChartByMonth, DangerScatterChartByMonthPeriod, DangerScatterChartByQuater, rankFiveDangerInspection
 from sklearnPro.src.Component.PredictModel import predictModel
 from sklearnPro.src.Component.compareGraph import compairPlot, toBase64
 from sklearnPro.src.Component.corMatt import corrMatt, findHighCorrList
@@ -32,15 +32,13 @@ def concatenate_year_month(datetime):
     return "{0}-{1}".format(datetime.year, datetime.month)
 
 
-rest_port = 5000
-eureka_client.init(
-    # http://44.234.112.21/
-    # http://172.31.62.127:8761/eureka
-    eureka_server="http://172.31.62.127:8761/eureka",
-    # eureka_server="http://localhost:8761/eureka",
-    app_name="flask-graph-server",
-    instance_port=rest_port
-)
+# rest_port = 5000
+# eureka_client.init(
+#     # eureka_server="http://172.31.62.127:8761/eureka",
+#     eureka_server="http://localhost:8761/eureka",
+#     app_name="flask-graph-server",
+#     instance_port=rest_port
+# )
 
 mpl.use('Agg')
 app = Flask(__name__)
@@ -53,6 +51,7 @@ mpl.rcParams['axes.unicode_minus'] = False
 
 train = pd.read_csv("data/data/team5train2.csv", parse_dates=["date"])
 test = pd.read_csv("data/data/team5test2.csv", parse_dates=["date"])
+complete = pd.read_csv("data/data/team5complete.csv", parse_dates=["date"])
 
 categorical_feature_names = ["Inspection Name", "holiday",
                              "Man", "duration", "humidity", "item", "date", "result"]
@@ -552,7 +551,7 @@ def baseGraph():
 @ app.route("/graph/selectByMonthThree",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def selectByMonthThree():
-    if request.method == 'GET':
+    if request.method == 'POST':
 
         data = request.get_json()['data']['valueGraph']
         print(data)
@@ -573,6 +572,7 @@ def selectByMonthThree():
 
         combineHorizontalGraphImage = combineHorizontalGraph(
             test, Year, Month, Inspection, Item, Point)
+        print('combineHorizontalGraphImage', combineHorizontalGraphImage)
         # time.sleep(2.5)
     return {"base64": combineHorizontalGraphImage}
 
@@ -701,6 +701,50 @@ def lineWithBarplotYear():
             test, predictModel(train), Year, Inspection, Item, Point)
 
     return {"base64": lineWithBarplotWithYearImage}
+
+
+@ app.route("/graph/dangerRankYear",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def dangerRankYear():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+        print('.....................', data)
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+        Point = int(data['selectP'])
+        Item = int(data['selectI'])
+
+        rankFiveDangerInspectionImage = rankFiveDangerInspection(
+            complete, Year, Month, stdMultiple, typePeriod)
+
+    return {"base64": rankFiveDangerInspectionImage}
+
+
+@ app.route("/graph/top",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def dangerRankYear():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+        print('.....................', data)
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+        Point = int(data['selectP'])
+        Item = int(data['selectI'])
+
+        rankFiveDangerInspectionImage = rankFiveDangerInspection(
+            complete, Year, Month, stdMultiple, typePeriod)
+
+    return {"base64": rankFiveDangerInspectionImage}
 
 
 @ app.route("/graph/jung")
