@@ -9,6 +9,7 @@ from scipy import stats
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 import time
 import json
+import re
 
 from sklearnPro.src.Component.preprocess import nameCategory, toBase64
 
@@ -208,12 +209,26 @@ def DangerScatterChartByQuater(test, year, stdMultiple):
     return result
 
 
+def serialize_sets(obj):
+    if isinstance(obj, set):
+        return list(obj)
+
+    return obj
+
+
+class NumpyEncoder(json.JSONEncoder):
+
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+
 def rankFiveDangerInspection(test, year, month, stdMultiple, typePeriod):
     DangeredData = test.loc[(test['result'] > test['result'].mean(
     ) + stdMultiple*test['result'].std())]
 
-#     DangeredData = DangeredAllData.loc[(
-#         DangeredAllData['Inspection Name'] == Inspection)]
+    DangeredData = nameCategory(nameCategory)
 
     if typePeriod == '3Y':
         period = 36
@@ -246,10 +261,34 @@ def rankFiveDangerInspection(test, year, month, stdMultiple, typePeriod):
         startDate = '01/' + str(month) + '/' + str(year)
         endDate = '31/' + str(endmonth) + '/' + str(endYear)
 
-    find5list_corr = json.loads(
+    find5list_inspection = json.loads(
         DangeredData['Inspection Name'].value_counts().to_json())
 
-    return find5list_corr
+    find5list_point = json.loads(
+        DangeredData['point'].value_counts().to_json())
 
+    find5list_item = json.loads(
+        DangeredData['item'].value_counts().to_json())
 
+    Dangerinspection = find5list_inspection.items()
+    listinspection = list(Dangerinspection)
+    arrinspection = np.array(listinspection)
 
+    Dangerpoint = find5list_point.items()
+    listpoint = list(Dangerpoint)
+    arrpoint = np.array(listpoint)
+
+    Dangeritem = find5list_item.items()
+    listitem = list(Dangeritem)
+    arritem = np.array(listitem)
+
+    find5list_Inspection = json.dumps(arrinspection,
+                                      cls=NumpyEncoder)
+
+    find5list_Point = json.dumps(arrpoint,
+                                 cls=NumpyEncoder)
+
+    find5list_Item = json.dumps(arritem,
+                                cls=NumpyEncoder)
+
+    return find5list_Inspection, find5list_Point, find5list_Item

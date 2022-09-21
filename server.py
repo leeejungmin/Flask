@@ -17,6 +17,7 @@ from sklearnPro.src.Component.DangerScatterPlot import DangerScatterChartByMonth
 from sklearnPro.src.Component.PredictModel import predictModel
 from sklearnPro.src.Component.compareGraph import compairPlot, toBase64
 from sklearnPro.src.Component.corMatt import corrMatt, findHighCorrList
+from sklearnPro.src.Component.manageDanger import thisMonthCount
 from sklearnPro.src.Component.normalDistribution import normal_dis
 from sklearnPro.src.Component.preprocess import selected_num
 from sklearnPro.src.Component.selectByMonthThree import combineHorizontalGraph
@@ -32,13 +33,13 @@ def concatenate_year_month(datetime):
     return "{0}-{1}".format(datetime.year, datetime.month)
 
 
-# rest_port = 5000
-# eureka_client.init(
-#     # eureka_server="http://172.31.62.127:8761/eureka",
-#     eureka_server="http://localhost:8761/eureka",
-#     app_name="flask-graph-server",
-#     instance_port=rest_port
-# )
+rest_port = 5000
+eureka_client.init(
+    # eureka_server="http://172.31.62.127:8761/eureka",
+    eureka_server="http://localhost:8761/eureka",
+    app_name="flask-graph-server",
+    instance_port=rest_port
+)
 
 mpl.use('Agg')
 app = Flask(__name__)
@@ -64,11 +65,18 @@ train["year"] = train["date"].dt.year
 train["month"] = train["date"].dt.month
 train["year_month"] = train["date"].apply(concatenate_year_month)
 
+complete["year"] = complete["date"].dt.year
+complete["month"] = complete["date"].dt.month
+complete["year_month"] = complete["date"].apply(concatenate_year_month)
 
-train['Inspection Name'] = train['Inspection Name'].map(title_mapping)
-test['Inspection Name'] = test['Inspection Name'].map(title_mapping)
 train['point'] = train['point'].map(point_mapping)
+train['Inspection Name'] = train['Inspection Name'].map(title_mapping)
+
+test['Inspection Name'] = test['Inspection Name'].map(title_mapping)
 test['point'] = test['point'].map(point_mapping)
+
+complete['Inspection Name'] = complete['Inspection Name'].map(title_mapping)
+complete['point'] = complete['point'].map(point_mapping)
 
 
 dr = pd.date_range(start='2015-01-01', end='2025-12-31')
@@ -89,14 +97,23 @@ test["day"] = test["date"].dt.day
 test["dayofweek"] = test["date"].dt.dayofweek
 test['holiday'] = test['date'].dt.date.astype('datetime64').isin(holidays)
 
+complete["year"] = complete["date"].dt.year
+complete["month"] = complete["date"].dt.month
+complete["day"] = complete["date"].dt.day
+complete["dayofweek"] = complete["date"].dt.dayofweek
+complete['holiday'] = complete['date'].dt.date.astype(
+    'datetime64').isin(holidays)
+
 train.loc[train["holiday"] == True, "holiday"] = 0
 train.loc[train["holiday"] == False, "holiday"] = 1
-
 train.loc[train["humidity"] == 0, "humidity"] = train["humidity"].mean()
 
 test.loc[test["holiday"] == True, "holiday"] = 0
 test.loc[test["holiday"] == False, "holiday"] = 1
 
+complete.loc[complete["holiday"] == True, "holiday"] = 0
+complete.loc[complete["holiday"] == False, "holiday"] = 1
+complete.loc[complete["humidity"] == 0, "humidity"] = train["humidity"].mean()
 
 train.loc[(train["month"] == 1) | (train["month"] == 2)
           | (train["month"] == 3), "season"] = 0
@@ -116,6 +133,16 @@ test.loc[(test["month"] == 7) | (test["month"] == 8)
 test.loc[(test["month"] == 10) | (test["month"] == 11)
          | (test["month"] == 12), "season"] = 3
 
+complete.loc[(complete["month"] == 1) | (complete["month"] == 2)
+             | (complete["month"] == 3), "season"] = 0
+complete.loc[(complete["month"] == 4) | (complete["month"] == 5)
+             | (complete["month"] == 6), "season"] = 1
+complete.loc[(complete["month"] == 7) | (complete["month"] == 8)
+             | (complete["month"] == 9), "season"] = 2
+complete.loc[(complete["month"] == 10) | (complete["month"] == 11)
+             | (complete["month"] == 12), "season"] = 3
+
+
 train.loc[(train["month"] == 1) | (train["month"] == 2)
           | (train["month"] == 3), "quarter"] = 1
 train.loc[(train["month"] == 4) | (train["month"] == 5)
@@ -134,9 +161,18 @@ test.loc[(test["month"] == 7) | (test["month"] == 8)
 test.loc[(test["month"] == 10) | (test["month"] == 11)
          | (test["month"] == 12), "quarter"] = 4
 
+complete.loc[(complete["month"] == 1) | (complete["month"] == 2)
+             | (complete["month"] == 3), "quarter"] = 1
+complete.loc[(complete["month"] == 4) | (complete["month"] == 5)
+             | (complete["month"] == 6), "quarter"] = 2
+complete.loc[(complete["month"] == 7) | (complete["month"] == 8)
+             | (complete["month"] == 9), "quarter"] = 3
+complete.loc[(complete["month"] == 10) | (complete["month"] == 11)
+             | (complete["month"] == 12), "quarter"] = 4
 
 train["year_month"] = train["date"].apply(concatenate_year_month)
 test["year_month"] = test["date"].apply(concatenate_year_month)
+complete["year_month"] = complete["date"].apply(concatenate_year_month)
 
 
 def combineGraph(data, c_year, c_month, Inspection, item, point):
@@ -725,9 +761,9 @@ def dangerRankYear():
     return {"base64": rankFiveDangerInspectionImage}
 
 
-@ app.route("/graph/top",  methods=['GET', 'POST'])
+@ app.route("/graph/targetGoal",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
-def dangerRankYear():
+def targetGoal():
     if request.method == 'POST':
 
         data = request.get_json()['data']['valueGraph']
@@ -741,10 +777,10 @@ def dangerRankYear():
         Point = int(data['selectP'])
         Item = int(data['selectI'])
 
-        rankFiveDangerInspectionImage = rankFiveDangerInspection(
-            complete, Year, Month, stdMultiple, typePeriod)
+        thisMonthCountImage = thisMonthCount(
+            test, Inspection, Year, Month)
 
-    return {"base64": rankFiveDangerInspectionImage}
+    return {"base64": thisMonthCountImage}
 
 
 @ app.route("/graph/jung")
@@ -758,5 +794,5 @@ def min():
 
 
 if __name__ == "__main__":
-    app.run(threaded=False, debug=True)
+    app.run(host="0.0.0.0", threaded=False, debug=True)
     #  app.run(threaded=False, debug=True,  processes=5)
