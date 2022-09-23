@@ -20,7 +20,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 def frameFromPeriod(year, month, Inspection, item, point):
 
-    begin_date = str(year)+"-"+str(month+1)+"-01"
+    begin_date = str(year)+"-"+str(month)+"-01"
     end_date = str(year+1)+"-"+str(month)+"-01"
     df = pd.DataFrame({'Inspection Name': Inspection,
                        'point': point,

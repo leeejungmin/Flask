@@ -1,3 +1,4 @@
+import datetime
 from flask import Flask, send_file, request, Response, jsonify
 import pandas as pd
 import numpy as np
@@ -10,7 +11,10 @@ import json
 import io
 from flask_cors import CORS, cross_origin
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
-import time
+
+
+from sklearnPro.src.Component.PredictModel import makePredictData
+from sklearnPro.src.Component.preprocess import threeYearData
 mpl.use('Agg')
 
 
@@ -24,21 +28,23 @@ def toBase64(fig):
 
 
 def selected_num(train, Year, Month, Inspection, item, point):
+    today = datetime.date.today()
+    Year = today.year - 2
+    print(Year)
     predicted_num = train.loc[(train["year"] == Year) &
-                              (train["Inspection Name"] == 1) &
+                              (train["Inspection Name"] == Inspection) &
                               (train["month"] == Month) &
-                              (train["item"] == 2) &
-                              (train["point"] == 1)]
+                              (train["item"] == item) &
+                              (train["point"] == point)]
+    # print(predicted_num)
     return (int(predicted_num['result']))
 
 
-def combineHorizontalGraph(data, c_year, c_month, Inspection, item, point):
+def combineHorizontalGraph(data, Model, c_year, c_month, Inspection, item, point, stdMultiple=-1):
 
-    # plt.show()
-    print('hreee....................', c_year)
     plt.figure(figsize=(10, 5))
     bar_width = 0.39
-    alpha = 0.7
+    alpha = 0.8
 
     c_year = c_year
     p_year = c_year-1
@@ -48,19 +54,19 @@ def combineHorizontalGraph(data, c_year, c_month, Inspection, item, point):
     prev_port = str(p_year)+"-"+str(c_month)
     cur_port = str(c_year)+"-"+str(c_month)
     next_port = str(c_year)+"-"+str(c_month+1)
-    dst_ports = str(p_year)+"-"+str(c_month), str(c_year) + \
-        "-"+str(c_month), str(c_year)+"-"+str(c_month+1)
 
-    prev_port_label = "In Safe"
-    cur_port_label = "In Safe"
-    next_port_label = "In Safe"
+    processedData = threeYearData(
+        data, c_year, c_month, Inspection, item, point)
 
+    standard = processedData['result'].mean(
+    ) + stdMultiple*processedData['result'].std()
+    standard = int(round(standard))
+    standard = standard - 10
     xlabel = [0, 1, 2, 3, 4]
+    standard_point = [int(round(standard))]*5
 
-    standard = 59
-    standard_point = [standard]*5
-#     plt.ayline(xlabel, standard_point, color='red', alpha=0.5)
-    plt.axvline(x=standard, linewidth=3, color='orange', linestyle='--')
+    plt.axvline(x=int(round(standard)), linewidth=3,
+                color='orange', linestyle='--')
 
     label = [prev_port, cur_port, next_port]
 
@@ -68,27 +74,40 @@ def combineHorizontalGraph(data, c_year, c_month, Inspection, item, point):
         data, c_year-1, c_month, Inspection, item, point)
     cur_port_count = selected_num(
         data, c_year, c_month, Inspection, item, point)
-    next_port_count = selected_num(
-        data, c_year, c_month+1, Inspection, item, point)
-    # red_color = 'firebrick'
-    red_color = 'orange'
+    predictedData = makePredictData(
+        Model, c_year, c_month+1, Inspection, item, point)
 
+    next_port_count = predictedData.loc[(predictedData["year"] == c_year) &
+                                        (predictedData["Inspection Name"] == Inspection) &
+                                        (predictedData["month"] == c_month+1) &
+                                        (predictedData["item"] == item) &
+                                        (predictedData["point"] == point)]['prediction']
+    # next_port_count = selected_num(
+    #     futureData, c_year, c_month+1, Inspection, item, point)
+    # red_color = 'firebrick'
+
+    temp_arr = []
+    for i in next_port_count:
+        temp_arr.append(int(round(i)))
+    next_port_count = temp_arr[0]
+
+    red_color = 'orange'
+    # print('prev_port_count,cur_port_count,next_port_count', prev_port_count, cur_port_count, next_port_count)
     prev_c = 'b'
     cur_c = 'b'
     next_c = 'b'
 
-    print('prev_port_count', prev_port_count)
     if prev_port_count > standard:
         prev_c = red_color
-        prev_port_label = "In Danger"
+        # prev_port_label = "In Danger"
 
     if cur_port_count > standard:
         cur_c = red_color
-        cur_port_label = "In Danger"
+        # cur_port_label = "In Danger"
 
     if next_port_count > standard:
         next_c = red_color
-        next_port_label = "In Danger"
+        # next_port_label = "In Danger"
 
     p1 = plt.barh(1, prev_port_count,
                   bar_width,
@@ -110,7 +129,7 @@ def combineHorizontalGraph(data, c_year, c_month, Inspection, item, point):
                   alpha=alpha,
                   label=next_port)
 
-    x = np.arange(1, len(dst_ports)+1)
+    x = np.arange(1, 4)
 
     plt.gca().spines['top'].set_visible(False)
     plt.gca().spines['right'].set_visible(False)

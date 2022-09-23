@@ -64,3 +64,46 @@ def thisMonthCount(test, Inspection, year, month):
     find5list_Inspection = json.dumps(arrinspection, cls=NpEncoder)
 
     return find5list_Inspection
+
+
+def thisMonthRatio(test, year, month, stdMultiple):
+    processedData = test.loc[(test['year'] == year) & (test['month'] == month)]
+
+    processedData = nameCategory(processedData)
+    if(stdMultiple == 1):
+        Data = processedData.loc[(processedData['result'] < processedData['result'].mean(
+        ) + processedData['result'].std())]
+    elif(stdMultiple == 1.5):
+        Data = processedData.loc[(processedData['result'] > processedData['result'].mean() * processedData['result'].std()) &
+                                 (processedData['result'] < processedData['result'].mean() + 1.5*processedData['result'].std())]
+    elif(stdMultiple == 2):
+        Data = processedData.loc[(processedData['result'] > processedData['result'].mean() + 2*processedData['result'].std()) &
+                                 (processedData['result'] < processedData['result'].mean() + 3*processedData['result'].std())]
+    elif(stdMultiple == 3):
+        Data = processedData.loc[(processedData['result'] > processedData['result'].mean(
+        ) + 3*processedData['result'].std())]
+
+    n = Data['Inspection Name'].drop_duplicates().count()
+
+    arrInspectName = []
+    arrInspectCount = []
+
+    for x in Data['Inspection Name'].drop_duplicates():
+        arrInspectName.append(x)
+
+    for inspection in arrInspectName:
+        countData = Data.loc[(Data['Inspection Name'] == inspection)]
+        arrInspectCount.append(countData['Inspection Name'].count())
+
+    explode = [0.05] * n
+    colors = sns.color_palette('pastel')[:n]
+
+    Data.sort_values("Inspection Name", inplace=True)
+    plt.pie(arrInspectCount, labels=arrInspectName, explode=explode,
+            counterclock=False, colors=colors, shadow=True, autopct='%.0f %%')
+
+    result = toBase64(plt)
+    plt.clf()
+    plt.close()
+
+    return result

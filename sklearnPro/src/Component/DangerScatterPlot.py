@@ -16,8 +16,12 @@ from sklearnPro.src.Component.preprocess import nameCategory, toBase64
 
 mpl.use('Qt5Agg')
 
+stdMultiple = 0
+
 
 def findDangerbyInpection(test, Inspection, year, month, stdMultiple):
+    stdMultiple = 0
+
     processedData = test.loc[(test[year] == year)],
     DangeredAllData = processedData.loc[(processedData['result'] > processedData['result'].mean(
     ) + stdMultiple*processedData['result'].std())],
@@ -35,7 +39,9 @@ def findDangerbyInpection(test, Inspection, year, month, stdMultiple):
 
 
 def findDangerbyMonth(test, year, month, stdMultiple):
-    processedData = test.loc[(test["year"] == year) & test["month"]]
+    stdMultiple = 0
+
+    processedData = test.loc[(test["year"] == year) & test["month"] == month]
     DangeredAllData = processedData.loc[(processedData['result'] > processedData['result'].mean()
                                          + stdMultiple*processedData['result'].std())]
     return DangeredAllData
@@ -43,6 +49,9 @@ def findDangerbyMonth(test, year, month, stdMultiple):
 
 
 def DangerScatterChartByInspection(test, Inspection, year, month, stdMultiple):
+
+    stdMultiple = 0
+
     data = findDangerbyInpection(test, Inspection, year, month, stdMultiple)
     print(data)
     sns.scatterplot(
@@ -65,6 +74,8 @@ def DangerScatterChartByInspection(test, Inspection, year, month, stdMultiple):
 
 
 def findDangerbyMonthPeriod(test, Inspection, year, month, stdMultiple, typePeriod):
+
+    stdMultiple = 0
 
     DangeredAllData = test.loc[(test['result'] > test['result'].mean(
     ) + stdMultiple*test['result'].std())]
@@ -108,11 +119,14 @@ def findDangerbyMonthPeriod(test, Inspection, year, month, stdMultiple, typePeri
 
 
 def DangerScatterChartByMonthPeriod(test, Inspection, year, month, stdMultiple, typePeriod):
+
+    stdMultiple = 0
+
     data = findDangerbyMonthPeriod(
         test, Inspection, year, month, stdMultiple, typePeriod)
-    print(data)
+
     g = sns.scatterplot(
-        data=nameCategory(data[0]), x='year_month', y='point', hue='item', s=50, alpha=0.8
+        data=nameCategory(data[0]), x='year_month', y='point', hue='item', s=50, alpha=0.9
     )
 
     plt.xticks(rotation=30, fontsize=5.5)
@@ -143,6 +157,37 @@ def DangerScatterChartByMonthPeriod(test, Inspection, year, month, stdMultiple, 
 def DangerScatterChartByMonth(test, year, month, stdMultiple):
     data = findDangerbyMonth(test, year, month, stdMultiple)
 
+    print('ScatterMonth...........', data)
+    sns.scatterplot(
+        data=nameCategory(data), x='item', y='point', hue='Inspection Name', s=399,
+        sizes=(20, 5),  legend='full'
+    )
+    plt.xticks(rotation=0, fontsize=13)
+    plt.yticks(rotation=40, fontsize=13)
+    # plt.setp(ax.get_legend().get_texts(), fontsize='15')
+    plt.legend(fontsize='13')
+    plt.gca().spines['top'].set_visible(False)
+    plt.gca().spines['right'].set_visible(False)
+    sns.set_context("paper", rc={"font.size": 17,
+                                 "axes.titlesize": 17, "axes.labelsize": 17})
+    sns.set_theme(font='Arial',
+                  rc={'axes.unicode_minus': False},
+                  style='white',
+                  )
+    sns.set_style(style='white')
+    sns.set(rc={'figure.figsize': (4.5, 3)})
+    result = toBase64(plt)
+
+    plt.clf()
+    plt.close()
+
+    return result
+
+
+def DangerScatterChartByPredict(test, year, month, stdMultiple):
+    stdMultiple = 0
+    data = findDangerbyMonth(test, year, month+1, stdMultiple)
+    print('predict...........', data)
     sns.scatterplot(
         data=nameCategory(data), x='item', y='point', hue='Inspection Name', s=399,
         sizes=(20, 5),  legend='full'
@@ -228,7 +273,7 @@ def rankFiveDangerInspection(test, year, month, stdMultiple, typePeriod):
     DangeredData = test.loc[(test['result'] > test['result'].mean(
     ) + stdMultiple*test['result'].std())]
 
-    DangeredData = nameCategory(nameCategory)
+    DangeredData = nameCategory(DangeredData)
 
     if typePeriod == '3Y':
         period = 36

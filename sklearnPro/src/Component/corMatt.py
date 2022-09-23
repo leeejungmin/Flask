@@ -75,12 +75,12 @@ def findHighCorrList(train, Inspection):
     corrMatt = processed_data[["holiday", "Man",
                                "duration", "humidity", "item", "result"]]
     corrMattAfterCorr = corrMatt.corr()
-    filteredCorMatt = corrMattAfterCorr[(corrMattAfterCorr != 1.0) & (corrMattAfterCorr >= .2) | (
-        corrMattAfterCorr <= -.2)]
+    filteredCorMatt = corrMattAfterCorr[(corrMattAfterCorr != 1.0) & (corrMattAfterCorr >= .4) | (
+        corrMattAfterCorr <= -.4)]
     corrStack = filteredCorMatt.unstack()
     corrByQuickSort = corrStack.sort_values(kind="quicksort")
     removeddupli_corr = corrByQuickSort.dropna().drop_duplicates()
-    find5list_corr = removeddupli_corr.keys()[:8]
+    find5list_corr = removeddupli_corr.keys()[:4]
     set_corr = {(i, j) for i, j in find5list_corr}
     tojson_corr = json.dumps(set_corr, default=serialize_sets)
     result = re.sub("'", "", tojson_corr)

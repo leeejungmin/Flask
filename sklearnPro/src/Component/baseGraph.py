@@ -30,7 +30,7 @@ def pointPlot(train):
     fig.set_size_inches(20, 10)
 
     sns.barplot(data=train, x="month", y="result",
-                hue="Man", ax=ax1, color="blue", alpha=0.5)
+                hue="Man", ax=ax1, color="blue", alpha=0.9)
     ax1.legend(fontsize=14)
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)

@@ -13,11 +13,13 @@ from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 import time
 import py_eureka_client.eureka_client as eureka_client
 
-from sklearnPro.src.Component.DangerScatterPlot import DangerScatterChartByMonth, DangerScatterChartByMonthPeriod, DangerScatterChartByQuater, rankFiveDangerInspection
+from sklearnPro.src.Component.DangerScatterPlot import DangerScatterChartByMonth, DangerScatterChartByMonthPeriod, DangerScatterChartByPredict, DangerScatterChartByQuater, rankFiveDangerInspection
 from sklearnPro.src.Component.PredictModel import predictModel
+from sklearnPro.src.Component.RankManage import topRankBarplot
+from sklearnPro.src.Component.analysisFactorGraph import findYearByFactor
 from sklearnPro.src.Component.compareGraph import compairPlot, toBase64
 from sklearnPro.src.Component.corMatt import corrMatt, findHighCorrList
-from sklearnPro.src.Component.manageDanger import thisMonthCount
+from sklearnPro.src.Component.manageDanger import thisMonthCount, thisMonthRatio
 from sklearnPro.src.Component.normalDistribution import normal_dis
 from sklearnPro.src.Component.preprocess import selected_num
 from sklearnPro.src.Component.selectByMonthThree import combineHorizontalGraph
@@ -35,8 +37,8 @@ def concatenate_year_month(datetime):
 
 rest_port = 5000
 eureka_client.init(
-    eureka_server="http://172.31.62.127:8761/eureka",
-    # eureka_server="http://localhost:8761/eureka",
+    # eureka_server="http://172.31.62.127:8761/eureka",
+    eureka_server="http://localhost:8761/eureka",
     app_name="flask-graph-server",
     instance_port=rest_port
 )
@@ -210,7 +212,6 @@ def combineGraph(data, c_year, c_month, Inspection, item, point):
     cur_c = 'b'
     next_c = 'b'
 
-    print('prev_port_count', prev_port_count)
     if prev_port_count > standard:
         prev_c = 'firebrick'
     if cur_port_count > standard:
@@ -495,7 +496,7 @@ def SeasonGraph(data, Year, Inspection, item, point):
                  label=dst_ports)
 
     x = np.arange(0, 3+2)
-    print(x)
+
     plt.title(Year, fontsize=20)
     plt.ylabel('Predict', fontsize=18)
     plt.xlabel('', fontsize=18)
@@ -590,7 +591,6 @@ def selectByMonthThree():
     if request.method == 'POST':
 
         data = request.get_json()['data']['valueGraph']
-        print(data)
 
         Year = int(data['selectY'])
         Month = int(data['selectM'])
@@ -600,15 +600,15 @@ def selectByMonthThree():
         Point = int(data['selectP'])
         Item = int(data['selectI'])
 
-        Year = 2021
-        Month = 8
-        Inspection = 1
-        Item = 2
-        Point = 1
+        # Year = 2021
+        # Month = 8
+        # Inspection = 1
+        # Item = 2
+        # Point = 1
 
         combineHorizontalGraphImage = combineHorizontalGraph(
-            test, Year, Month, Inspection, Item, Point)
-        print('combineHorizontalGraphImage', combineHorizontalGraphImage)
+            test, predictModel(train), Year, Month, Inspection, Item, Point, stdMultiple)
+
         # time.sleep(2.5)
     return {"base64": combineHorizontalGraphImage}
 
@@ -620,14 +620,13 @@ def compairPlotGraph():
 
         data = request.get_json()
 
-        # print('selectByMonthThree.....', data)
         # Year = int(data['selectY'])
         # Month = int(data['selectM'])
         # Inspection = int(data['selectN'])
         # Point = int(data['selectP'])
         # Item = int(data['selectI'])
         Variable = data['data']
-        print("Variable...............", Variable)
+
         # Year = 2021
         # Month = 8
         Inspection = 1
@@ -663,7 +662,6 @@ def dangerFindAllByPeriod():
     if request.method == 'POST':
 
         data = request.get_json()['data']['valueGraph']
-        print(data)
 
         Year = int(data['selectY'])
         Month = int(data['selectM'])
@@ -690,10 +688,30 @@ def dangerFindAllMonth():
         stdMultiple = int(data['stdMultiple'])
         typePeriod = str(data['typePeriod'])
 
+        stdMultiple = 0
         DangerScatterChartByMonthImage = DangerScatterChartByMonth(
-            test, Year, Month, stdMultiple)
+            complete, Year, Month, stdMultiple)
 
     return {"base64": DangerScatterChartByMonthImage}
+
+
+@ app.route("/graph/dangerFindPredict",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def dangerFindPredict():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+
+        DangerScatterChartByPredictImage = DangerScatterChartByPredict(
+            complete, Year, Month, stdMultiple)
+
+    return {"base64": DangerScatterChartByPredictImage}
 
 
 @ app.route("/graph/dangerFindQuater",  methods=['GET', 'POST'])
@@ -702,7 +720,6 @@ def dangerFindQuater():
     if request.method == 'POST':
 
         data = request.get_json()['data']['valueGraph']
-        print(data)
 
         Year = int(data['selectY'])
         Month = int(data['selectM'])
@@ -722,7 +739,6 @@ def lineWithBarplotYear():
     if request.method == 'POST':
 
         data = request.get_json()['data']['valueGraph']
-        print('.....................', data)
 
         Year = int(data['selectY'])
         Month = int(data['selectM'])
@@ -732,7 +748,6 @@ def lineWithBarplotYear():
         Point = int(data['selectP'])
         Item = int(data['selectI'])
 
-        #  (test,predictModel(train), 2021, 1, 2, 1)
         lineWithBarplotWithYearImage = lineWithBarplotWithYear(
             test, predictModel(train), Year, Inspection, Item, Point)
 
@@ -745,7 +760,6 @@ def dangerRankYear():
     if request.method == 'POST':
 
         data = request.get_json()['data']['valueGraph']
-        print('.....................', data)
 
         Year = int(data['selectY'])
         Month = int(data['selectM'])
@@ -767,7 +781,6 @@ def targetGoal():
     if request.method == 'POST':
 
         data = request.get_json()['data']['valueGraph']
-        print('.....................', data)
 
         Year = int(data['selectY'])
         Month = int(data['selectM'])
@@ -781,6 +794,91 @@ def targetGoal():
             test, Inspection, Year, Month)
 
     return {"base64": thisMonthCountImage}
+
+
+@ app.route("/graph/dangerpieChart",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def dangerpieChart():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+        Point = int(data['selectP'])
+        Item = int(data['selectI'])
+
+        thisMonthRatioImage = thisMonthRatio(
+            test, Year, Month, stdMultiple)
+
+    return {"base64": thisMonthRatioImage}
+
+
+@ app.route("/graph/rankPoint",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def rankPoint():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+        Point = int(data['selectP'])
+        Item = int(data['selectI'])
+
+        topRankBarplotImage = topRankBarplot(
+            test, 'point', Year, stdMultiple)
+
+    return {"base64": topRankBarplotImage}
+
+
+@ app.route("/graph/rankItem",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def rankItem():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+        Point = int(data['selectP'])
+        Item = int(data['selectI'])
+
+        topRankBarplotImage = topRankBarplot(
+            test, 'item', Year, stdMultiple)
+
+    return {"base64": topRankBarplotImage}
+
+
+@ app.route("/graph/DangerByFactor",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def DangerByFactor():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+        Point = int(data['selectP'])
+        Item = int(data['selectI'])
+        typeHue = str(data['selectH'])
+
+        findYearByFactorImage = findYearByFactor(
+            train, Inspection, Year, Month, Item, Point, typeHue)
+
+    return {"base64": findYearByFactorImage}
 
 
 @ app.route("/graph/jung")
