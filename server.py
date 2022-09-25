@@ -21,10 +21,13 @@ from sklearnPro.src.Component.compareGraph import compairPlot, toBase64
 from sklearnPro.src.Component.corMatt import corrMatt, findHighCorrList
 from sklearnPro.src.Component.manageDanger import thisMonthCount, thisMonthRatio
 from sklearnPro.src.Component.normalDistribution import normal_dis
-from sklearnPro.src.Component.preprocess import selected_num
-from sklearnPro.src.Component.selectByMonthThree import combineHorizontalGraph
+from sklearnPro.src.Component.preprocess import ChildListOfFacility, selected_num
+from sklearnPro.src.Component.selectByMonthThree import combineHorizontalGraph, numThree
 from sklearnPro.src.Component.baseGraph import pointPlot
 from sklearnPro.src.Component.showThreePeriod import lineWithBarplotWithYear
+
+
+pd.set_option('mode.chained_assignment',  None)
 
 
 def concatenate_point_item(train):
@@ -37,8 +40,8 @@ def concatenate_year_month(datetime):
 
 rest_port = 5000
 eureka_client.init(
-    eureka_server="http://172.31.62.127:8761/eureka",
-    # eureka_server="http://localhost:8761/eureka",
+    # eureka_server="http://172.31.62.127:8761/eureka",
+    eureka_server="http://localhost:8761/eureka",
     app_name="flask-graph-server",
     instance_port=rest_port
 )
@@ -53,15 +56,16 @@ CORS(app)
 mpl.rcParams['axes.unicode_minus'] = False
 
 train = pd.read_csv("data/data/team5train2.csv", parse_dates=["date"])
-test = pd.read_csv("data/data/team5test2.csv", parse_dates=["date"])
-complete = pd.read_csv("data/data/team5complete.csv", parse_dates=["date"])
+complete = pd.read_csv("data/data/team5test2.csv", parse_dates=["date"])
+test = pd.read_csv("data/data/team5complete.csv", parse_dates=["date"])
 
 categorical_feature_names = ["Inspection Name", "holiday",
                              "Man", "duration", "humidity", "item", "date", "result"]
-title_mapping = {"Hydraulic System Check": 1, "Camshaft": 2, "Cylinder": 3, "Engine Check": 4,
-                 "Table Roller": 5, "Reducer Check": 6, "FuelRail": 7, "InterCooler": 8, "Geared Motor Check": 9}
-point_mapping = {'coupling': 1, 'oil': 2, 'tank': 3, ' in the filter': 4, 'fuelRail': 5, 'bearing': 6,
-                 'same position(vertical)': 7, 'bearing cover': 8, 'gear': 9, 'coolant': 10, 'cooling fan': 11, 'roller': 12, 'in the filter': 13, 'pump': 14, 'o-ring': 15}
+title_mapping = {"HydraulicSystem": 1, "Camshaft": 2, "Cylinder": 3, "Engine": 4,
+                 "TableRoller": 5, "Reducer": 6, "FuelRail": 7, "InterCooler": 8, "GearedMotor": 9}
+point_mapping = {'coupling': 1, 'oil': 2, 'tank': 3, 'filter(in)': 4, 'fuelRail': 5, 'bearing': 6,
+                 'position(ver)': 7, 'cover': 8, 'gear': 9, 'coolant': 10, 'coolingfan': 11, 'roller': 12, 'pump': 14, 'o-ring': 15}
+
 
 train["year"] = train["date"].dt.year
 train["month"] = train["date"].dt.month
@@ -73,6 +77,7 @@ complete["year_month"] = complete["date"].apply(concatenate_year_month)
 
 train['point'] = train['point'].map(point_mapping)
 train['Inspection Name'] = train['Inspection Name'].map(title_mapping)
+
 
 test['Inspection Name'] = test['Inspection Name'].map(title_mapping)
 test['point'] = test['point'].map(point_mapping)
@@ -544,16 +549,16 @@ def normalDis():
     return {"base64": normalDisImage}
 
 
-@ app.route("/graph/corrMattImage",  methods=['GET', 'POST'])
-@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
-def corrMattImage():
-    if request.method == 'POST':
-        data = request.get_json()["data"]['valueGraph']
+# @ app.route("/graph/corrMattImage",  methods=['GET', 'POST'])
+# @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+# def corrMattImage():
+#     if request.method == 'POST':
+#         data = request.get_json()["data"]['valueGraph']
 
-        Inspection = int(data['selectN'])
-        corrMattimage = corrMatt(train, Inspection)
+#         Inspection = int(data['selectN'])
+#         corrMattimage = corrMatt(train, Inspection)
 
-    return {"base64": corrMattimage}
+#     return {"base64": corrMattimage}
 
 
 @ app.route("/graph/selectByYear",  methods=['GET', 'POST'])
@@ -573,16 +578,6 @@ def selectByYear():
 
     # return jsonify(data), 200
     return {"base64": pointImage}
-
-
-@ app.route("/graph/baseGraph",  methods=['GET', 'POST'])
-@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
-def baseGraph():
-    if request.method == 'GET':
-        time.sleep(1.5)
-        barImage = pointPlot(train)
-
-    return {"base64": barImage}
 
 
 @ app.route("/graph/selectByMonthThree",  methods=['GET', 'POST'])
@@ -688,9 +683,8 @@ def dangerFindAllMonth():
         stdMultiple = int(data['stdMultiple'])
         typePeriod = str(data['typePeriod'])
 
-        stdMultiple = 0
         DangerScatterChartByMonthImage = DangerScatterChartByMonth(
-            complete, Year, Month, stdMultiple)
+            test, Year, Month, stdMultiple)
 
     return {"base64": DangerScatterChartByMonthImage}
 
@@ -709,7 +703,7 @@ def dangerFindPredict():
         typePeriod = str(data['typePeriod'])
 
         DangerScatterChartByPredictImage = DangerScatterChartByPredict(
-            complete, Year, Month, stdMultiple)
+            test, Year, Month, stdMultiple)
 
     return {"base64": DangerScatterChartByPredictImage}
 
@@ -770,7 +764,7 @@ def dangerRankYear():
         Item = int(data['selectI'])
 
         rankFiveDangerInspectionImage = rankFiveDangerInspection(
-            complete, Year, Month, stdMultiple, typePeriod)
+            test, Year, Month, stdMultiple, typePeriod)
 
     return {"base64": rankFiveDangerInspectionImage}
 
@@ -880,6 +874,48 @@ def DangerByFactor():
 
     return {"base64": findYearByFactorImage}
 
+
+@ app.route("/graph/listByInspect",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def listByInspect():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']
+
+        print('asdfasdfasdf', data)
+        # Year = int(data['selectY'])
+        # Month = int(data['selectM'])
+        Inspection = int(data)
+        # stdMultiple = int(data['stdMultiple'])
+        # typePeriod = str(data['typePeriod'])
+        # Point = int(data['selectP'])
+        # Item = int(data['selectI'])
+        # typeHue = str(data['selectH'])
+
+        ChildListOfFacilityImage = ChildListOfFacility(train, Inspection)
+
+    return {"base64": ChildListOfFacilityImage}
+
+@ app.route("/graph/listNum",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def listNum():
+    if request.method == 'POST':
+
+        data = request.get_json()['data']['valueGraph']
+
+        print('asdfasdfasdf', data)
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data)
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
+        Point = int(data['selectP'])
+        Item = int(data['selectI'])
+        typeHue = str(data['selectH'])
+
+        numThreeImage = numThree(test, predictModel(train), Year, Inspection, Item, Point)
+
+    return {"base64": numThreeImage}
 
 @ app.route("/graph/jung")
 def jung():

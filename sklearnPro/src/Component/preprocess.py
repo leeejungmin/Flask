@@ -24,10 +24,10 @@ def toBase64(fig):
 
 
 def nameCategory(data):
-    title_mapping = {'Hydraulic System Check': 1, 'Camshaft': 2, 'Cylinder': 3, 'Engine Check': 4,
-                     'Table Roller': 5, 'Reducer Check': 6, ' FuelRail': 7, 'InterCooler': 8, 'Geared Motor Check': 9}
-    point_mapping = {'coupling': 1, 'oil': 2, 'tank': 3, ' in the filter': 4, 'fuelRail': 5, 'bearing': 6,
-                     'same position(vertical)': 7, 'bearing cover': 8, 'gear': 9, 'coolant': 10, 'cooling fan': 11, 'roller': 12, 'in the filter': 13, 'pump': 14, 'o-ring': 15}
+    title_mapping = {'Hydraulic System': 1, 'Camshaft': 2, 'Cylinder': 3, 'Engine': 4,
+                     'Table Roller': 5, 'Reducer': 6, ' FuelRail': 7, 'InterCooler': 8, 'Geared Motor': 9}
+    point_mapping = {'coupling': 1, 'oil': 2, 'tank': 3, 'filter(in)': 4, 'fuelRail': 5, 'bearing': 6,
+                     'position(ver)': 7, 'cover': 8, 'gear': 9, 'coolant': 10, 'coolingfan': 11, 'roller': 12, 'pump': 14, 'o-ring': 15}
     item_mapping = {'alignment': 1, 'vibration': 2, 'temperature': 3,
                     'intensity': 4, 'viscosity': 5, 'O2 saturation': 6, 'CO2 saturation': 7}
     season_mapping = {'spring': 0, 'summer': 1, 'autumn': 2, 'winter': 3}
@@ -83,10 +83,12 @@ def threeYearData(train, Year, Month, Inspection, item, point):
 
 
 def nameCategory(data):
-    title_mapping = {'Hydraulic System Check': 1, 'Camshaft': 2, 'Cylinder': 3, 'Engine Check': 4,
-                     'Table Roller': 5, 'Reducer Check': 6, ' FuelRail': 7, 'InterCooler': 8, 'Geared Motor Check': 9}
-    point_mapping = {'coupling': 1, 'oil': 2, 'tank': 3, ' in the filter': 4, 'fuelRail': 5, 'bearing': 6,
-                     'same position(vertical)': 7, 'bearing cover': 8, 'gear': 9, 'coolant': 10, 'cooling fan': 11, 'roller': 12, 'in the filter': 13, 'pump': 14, 'o-ring': 15}
+
+    data2 = data.copy()
+    title_mapping = {'HydraulicSystem': 1, 'Camshaft': 2, 'Cylinder': 3, 'Engine': 4,
+                     'TableRoller': 5, 'Reducer': 6, ' FuelRail': 7, 'InterCooler': 8, 'GearedMotor': 9}
+    point_mapping = {'coupling': 1, 'oil': 2, 'tank': 3, 'filter(in)': 4, 'fuelRail': 5, 'bearing': 6,
+                     'position(ver)': 7, 'cover': 8, 'gear': 9, 'coolant': 10, 'cooling-fan': 11, 'roller': 12, 'filter(in)': 13, 'pump': 14, 'o-ring': 15}
     item_mapping = {'alignment': 1, 'vibration': 2, 'temperature': 3,
                     'intensity': 4, 'viscosity': 5, 'O2 saturation': 6, 'CO2 saturation': 7}
     season_mapping = {'spring': 0, 'summer': 1, 'autumn': 2, 'winter': 3}
@@ -97,10 +99,38 @@ def nameCategory(data):
     reversed_item_mapping = dict((v, k) for k, v in item_mapping.items())
     reversed_quarter_mapping = dict((v, k) for k, v in quater_mapping.items())
 
-    data['Inspection Name'] = data['Inspection Name'].map(
+    data2['Inspection Name'] = data2['Inspection Name'].map(
         reversed_title_mapping)
-    data['point'] = data['point'].map(reversed_point_mapping)
-    data['item'] = data['item'].map(reversed_item_mapping)
-    data['quarter'] = data['quarter'].map(reversed_quarter_mapping)
+    data2['point'] = data2['point'].map(reversed_point_mapping)
+    data2['item'] = data2['item'].map(reversed_item_mapping)
+    data2['quarter'] = data2['quarter'].map(reversed_quarter_mapping)
 
-    return data
+    return data2
+
+
+def ChildListOfFacility(test, Inspection):
+
+    processedData = test.loc[(test["Inspection Name"] == Inspection)]
+#     processedData = processedData.drop_duplicates(subset=["point", "item"], keep=False)
+
+    processedData = nameCategory(processedData)
+    listOfPoint = processedData["point"].drop_duplicates()
+    listOfItem = processedData["item"].drop_duplicates()
+
+    arrPoint = []
+    arrItem = []
+    for i in listOfPoint:
+        if(i == 'NaN'):
+            pass
+        arrPoint.append(i)
+
+    for i in listOfItem:
+        if(i == 'NaN'):
+            pass
+        arrItem.append(i)
+
+    combine = arrPoint, arrItem
+    jsonString = json.dumps(combine)
+
+    print(type(jsonString))
+    return jsonString

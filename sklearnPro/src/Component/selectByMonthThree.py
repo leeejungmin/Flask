@@ -40,6 +40,68 @@ def selected_num(train, Year, Month, Inspection, item, point):
     return (int(predicted_num['result']))
 
 
+def numThree(data, Model, c_year, c_month, Inspection, item, point, stdMultiple=0.5):
+
+    c_year = c_year
+    p_year = c_year-1
+    c_month = c_month
+    n_month = c_month + 1
+
+    prev_port = str(p_year)+"-"+str(c_month)
+    cur_port = str(c_year)+"-"+str(c_month)
+    next_port = str(c_year)+"-"+str(c_month+1)
+
+    processedData = threeYearData(
+        data, c_year, c_month, Inspection, item, point)
+
+    standard = processedData['result'].mean(
+    ) + stdMultiple*processedData['result'].std()
+    standard = int(round(standard))
+    standard = standard - 10
+
+    label = [prev_port, cur_port, next_port]
+
+    prev_port_count = selected_num(
+        data, c_year-1, c_month, Inspection, item, point)
+    cur_port_count = selected_num(
+        data, c_year, c_month, Inspection, item, point)
+    predictedData = makePredictData(
+        Model, c_year, c_month+1, Inspection, item, point)
+
+    next_port_count = predictedData.loc[(predictedData["year"] == c_year) &
+                                        (predictedData["Inspection Name"] == Inspection) &
+                                        (predictedData["month"] == c_month+1) &
+                                        (predictedData["item"] == item) &
+                                        (predictedData["point"] == point)]['prediction']
+    # next_port_count = selected_num(
+
+    dangerData = data.loc[
+        (data["year"] == c_year) &
+        (data["month"] == c_month)]
+    thisYear = dangerData.loc[(dangerData['result'] > dangerData['result'].mean()
+                              + stdMultiple*dangerData['result'].std())]
+
+    lastdangerData = data.loc[
+        (data["year"] == c_year-1) &
+        (data["month"] == c_month)]
+    lastYear = lastdangerData.loc[(lastdangerData['result'] > lastdangerData['result'].mean()
+                                   + stdMultiple*lastdangerData['result'].std())]
+
+    nextdangerData = data.loc[
+        (data["year"] == c_year) &
+        (data["month"] == c_month+1)]
+    nextYear = nextdangerData.loc[(nextdangerData['result'] > nextdangerData['result'].mean()
+                                   + stdMultiple*nextdangerData['result'].std())]
+
+    thisy = thisYear['Inspection Name'].count()
+    lasty = lastYear['Inspection Name'].count()
+    nexty = nextYear['Inspection Name'].count()
+    arr = [prev_port_count, cur_port_count,
+           next_port_count, lasty, thisy, nexty]
+
+    return json.dumps(arr)
+
+
 def combineHorizontalGraph(data, Model, c_year, c_month, Inspection, item, point, stdMultiple=-1):
 
     plt.figure(figsize=(10, 5))

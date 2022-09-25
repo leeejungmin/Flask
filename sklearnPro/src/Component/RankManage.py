@@ -45,9 +45,9 @@ def topRankBarplot(test, typeName, year, stdMultiple):
 
     # inspection name 배열 top 3, point top3, item top3 , 이름, count
 
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(7, 3))
     bar_width = 0.39
-    alpha = 0.7
+    alpha = 0.9
 
     label = pointTopListkeys
 
@@ -84,7 +84,7 @@ def topRankBarplot(test, typeName, year, stdMultiple):
 
     plt.xlabel(' ', fontsize=8)
 
-    plt.yticks(x, pointTopListkeys, fontsize=15)
+    plt.yticks(x, pointTopListkeys, fontsize=12, rotation=40)
 
     result = toBase64(plt)
     plt.clf()

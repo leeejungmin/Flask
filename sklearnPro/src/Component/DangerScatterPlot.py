@@ -10,6 +10,7 @@ from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 import time
 import json
 import re
+from sklearnPro.src.Component.PredictModel import makePredictData, predictModel
 
 from sklearnPro.src.Component.preprocess import nameCategory, toBase64
 
@@ -36,16 +37,6 @@ def findDangerbyInpection(test, Inspection, year, month, stdMultiple):
         DangeredAllData['month'] < endmonth) & (DangeredAllData['month'] > month)]
 
     return FutureDangeredData
-
-
-def findDangerbyMonth(test, year, month, stdMultiple):
-    stdMultiple = 0
-
-    processedData = test.loc[(test["year"] == year) & test["month"] == month]
-    DangeredAllData = processedData.loc[(processedData['result'] > processedData['result'].mean()
-                                         + stdMultiple*processedData['result'].std())]
-    return DangeredAllData
-    # 분기 미래예측
 
 
 def DangerScatterChartByInspection(test, Inspection, year, month, stdMultiple):
@@ -154,15 +145,30 @@ def DangerScatterChartByMonthPeriod(test, Inspection, year, month, stdMultiple, 
     return result
 
 
-def DangerScatterChartByMonth(test, year, month, stdMultiple):
-    data = findDangerbyMonth(test, year, month, stdMultiple)
+def findDangerbyMonth(test, year, month, stdMultiple):
+    stdMultiple = 0
 
+    processedData = test.loc[(test["year"] == year) & test["month"] == month]
+    # DangeredAllData = processedData.loc[(processedData['result'] > processedData['result'].mean()
+    #                                      + stdMultiple*processedData['result'].std())]
+    return processedData
+    # 분기 미래예측
+
+
+def DangerScatterChartByMonth(test, year, month, stdMultiple):
+    # data = findDangerbyMonth(test, year, month, stdMultiple)
+
+    processedData = test.loc[
+        (test["year"] == year) &
+        (test["month"] == month)]
+    data = processedData.loc[(processedData['result'] > processedData['result'].mean()
+                              + stdMultiple*processedData['result'].std())]
     print('ScatterMonth...........', data)
     sns.scatterplot(
         data=nameCategory(data), x='item', y='point', hue='Inspection Name', s=399,
-        sizes=(20, 5),  legend='full'
+        sizes=(3, 5),  legend='full'
     )
-    plt.xticks(rotation=0, fontsize=13)
+    plt.xticks(rotation=40, fontsize=13)
     plt.yticks(rotation=40, fontsize=13)
     # plt.setp(ax.get_legend().get_texts(), fontsize='15')
     plt.legend(fontsize='13')
@@ -175,7 +181,7 @@ def DangerScatterChartByMonth(test, year, month, stdMultiple):
                   style='white',
                   )
     sns.set_style(style='white')
-    sns.set(rc={'figure.figsize': (4.5, 3)})
+    # sns.set(rc={'figure.figsize': (3, 5)})
     result = toBase64(plt)
 
     plt.clf()
@@ -186,13 +192,17 @@ def DangerScatterChartByMonth(test, year, month, stdMultiple):
 
 def DangerScatterChartByPredict(test, year, month, stdMultiple):
     stdMultiple = 0
-    data = findDangerbyMonth(test, year, month+1, stdMultiple)
-    print('predict...........', data)
+
+    processedData = test.loc[
+        (test["year"] == year) &
+        (test["month"] == month+1)]
+    data = processedData.loc[(processedData['result'] > processedData['result'].mean()
+                              + stdMultiple*processedData['result'].std())]
     sns.scatterplot(
         data=nameCategory(data), x='item', y='point', hue='Inspection Name', s=399,
-        sizes=(20, 5),  legend='full'
+        sizes=(3, 5),  legend='full'
     )
-    plt.xticks(rotation=0, fontsize=13)
+    plt.xticks(rotation=40, fontsize=13)
     plt.yticks(rotation=40, fontsize=13)
     # plt.setp(ax.get_legend().get_texts(), fontsize='15')
     plt.legend(fontsize='13')
@@ -205,7 +215,7 @@ def DangerScatterChartByPredict(test, year, month, stdMultiple):
                   style='white',
                   )
     sns.set_style(style='white')
-    sns.set(rc={'figure.figsize': (4.5, 3)})
+    # sns.set(rc={'figure.figsize': (3, 5)})
     result = toBase64(plt)
 
     plt.clf()
