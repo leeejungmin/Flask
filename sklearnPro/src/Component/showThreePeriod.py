@@ -23,7 +23,8 @@ def lineWithBarplotWithYear(train, Model, year, Inspection, item, point, month=1
                              (train["Inspection Name"] == Inspection) &
                              (train["item"] == item) &
                              (train["point"] == point)]
-
+                             
+    print('lastyearData',lastyearData)
     currentyearData = train.loc[(train["year"] == year) &
                                 (train["Inspection Name"] == Inspection) &
                                 (train["item"] == item) &
@@ -31,6 +32,7 @@ def lineWithBarplotWithYear(train, Model, year, Inspection, item, point, month=1
 
     futureData = makePredictData(Model, year, month, Inspection, item, point)
 
+    
     fig, ax1 = plt.subplots(figsize=(12, 6))
     sns.lineplot(data=futureData, x='month', y='prediction', marker='o', linewidth=5,
                  estimator=None,   ax=ax1,  color='orange', alpha=0.9)

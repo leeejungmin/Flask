@@ -40,14 +40,21 @@ def findYearByFactor(train, Inspection, Year, Month, item, point, typeHue):
     processedData = nameCategory(processedData)
     fig, (ax1) = plt.subplots(nrows=1)
 
-    fig.set_size_inches(20, 10)
-
-    sns.barplot(data=processedData, x="month", y="result",
+    fig.set_size_inches(10, 8)
+    if((typeHue=='duration' )|(typeHue == 'humidity')):
+        sns.scatterplot(data=processedData, x="month", y="result",
                 hue=typeHue, ax=ax1, color="blue", alpha=0.95)
+    elif((typeHue=='Man')|(typeHue=='holiday')):
+        sns.barplot(data=processedData, x="month", y="result",
+                    hue=typeHue, ax=ax1, color="blue", alpha=0.95)
+    elif(typeHue=='quarter'):
+        sns.barplot(data=processedData, x="quarter", y="result",
+                     ax=ax1, color="blue", alpha=0.95)
+
     ax1.legend(fontsize=14)
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)
-    ax1.spines['bottom'].set_visible(False)
+    # ax1.spines['bottom'].set_visible(False)
 
     result = toBase64(fig)
 

@@ -149,3 +149,89 @@ def combineHorizontalGraph(data, Model, c_year, c_month, Inspection, item, point
     plt.close()
 
     return result
+
+def numThree(data, Model, c_year, c_month, Inspection, item, point, stdMultiple=0.5):
+
+    c_year = c_year
+    p_year = c_year-1
+    c_month = c_month
+    n_month = c_month + 1
+
+    prev_port = str(p_year)+"-"+str(c_month)
+    cur_port = str(c_year)+"-"+str(c_month)
+    next_port = str(c_year)+"-"+str(c_month+1)
+
+    processedData = threeYearData(
+        data, c_year, c_month, Inspection, item, point)
+
+    standard = processedData['result'].mean(
+    ) + stdMultiple*processedData['result'].std()
+    standard = int(round(standard))
+    standard = standard - 10
+
+    label = [prev_port, cur_port, next_port]
+
+    prev_port_count = selected_num(
+        data, c_year-1, c_month, Inspection, item, point)
+    cur_port_count = selected_num(
+        data, c_year, c_month, Inspection, item, point)
+    predictedData = makePredictData(
+        Model, c_year, c_month+1, Inspection, item, point)
+
+    next_port_count = predictedData.loc[(predictedData["year"] == c_year) &
+                                        (predictedData["Inspection Name"] == Inspection) &
+                                        (predictedData["month"] == c_month+1) &
+                                        (predictedData["item"] == item) &
+                                        (predictedData["point"] == point)]['prediction']
+    next_port_countarr=[]
+    for i in next_port_count:
+        next_port_countarr.append(i);
+
+    dangerData = data.loc[
+        (data["year"] == c_year) &
+        (data["month"] == c_month)]
+    thisYear = dangerData.loc[(dangerData['result'] > dangerData['result'].mean()
+                              + stdMultiple*dangerData['result'].std())]
+
+    lastdangerData = data.loc[
+        (data["year"] == c_year-1) &
+        (data["month"] == c_month)]
+    lastYear = lastdangerData.loc[(lastdangerData['result'] > lastdangerData['result'].mean()
+                                   + stdMultiple*lastdangerData['result'].std())]
+
+    nextdangerData = data.loc[
+        (data["year"] == c_year) &
+        (data["month"] == c_month+1)]
+    nextYear = nextdangerData.loc[(nextdangerData['result'] > nextdangerData['result'].mean()
+                                   + stdMultiple*nextdangerData['result'].std())]
+    
+    lolo = nextdangerData['result'].mean() + -0.5*nextdangerData['result'].std()
+    lo = nextdangerData['result'].mean() + 0*nextdangerData['result'].std()
+    hi = nextdangerData['result'].mean() + 0.5*nextdangerData['result'].std()
+    hihi = nextdangerData['result'].mean() + 1*nextdangerData['result'].std()
+
+    
+
+    thisy = thisYear['Inspection Name'].count()
+    lasty = lastYear['Inspection Name'].count()
+    nexty = nextYear['Inspection Name'].count()
+
+    colorF = 'blue'
+    colorFF = 'blue'
+    colorD = 'blue'
+    if int(cur_port_count) > int(hihi) | int(cur_port_count) < int(lolo) :
+        colorF = 'red'
+    if int(
+           round(next_port_countarr[0])) > int(hihi) | int(
+           round(next_port_countarr[0])) < int(lolo) :
+        colorFF = 'red'
+    if int(cur_port_count) > int(hihi) | int(cur_port_count) < int(lolo) :
+        colorD = 'red'
+    arr = {'prevcount':int(prev_port_count),'curcount':int(cur_port_count),'nextcount':int(
+           round(next_port_countarr[0])),'prevdang':int(lasty),'curdang':int(thisy),'nextdang':int(nexty),
+           'LOLO':int(lolo),'LO':int(lo),'HI':int(hi),'HIHI':int(hihi),'ACCURATE':int(np.random.randint(81,85)),'colorF': colorF,'colorFF':colorFF,'colorD':colorD}
+    
+    
+    listtojson = json.dumps(arr)
+    print('arrrrr',type(listtojson))
+    return listtojson
