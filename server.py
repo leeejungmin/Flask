@@ -650,23 +650,23 @@ def findHighCorr():
     return {"base64": findHighCorrImage}
 
 
-# @ app.route("/graph/dangerFindAllByPeriod",  methods=['GET', 'POST'])
-# @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
-# def dangerFindAllByPeriod():
-#     if request.method == 'POST':
+@ app.route("/graph/dangerFindAllByPeriod",  methods=['GET', 'POST'])
+@ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
+def dangerFindAllByPeriod():
+    if request.method == 'POST':
 
-#         data = request.get_json()['data']['valueGraph']
+        data = request.get_json()['data']['valueGraph']
 
-#         Year = int(data['selectY'])
-#         Month = int(data['selectM'])
-#         Inspection = int(data['selectN'])
-#         stdMultiple = int(data['stdMultiple'])
-#         typePeriod = str(data['typePeriod'])
+        Year = int(data['selectY'])
+        Month = int(data['selectM'])
+        Inspection = int(data['selectN'])
+        stdMultiple = int(data['stdMultiple'])
+        typePeriod = str(data['typePeriod'])
 
-#         dangerFindAllByPeriodImage = DangerScatterChartByMonthPeriod(
-#             complete, Inspection, Year, Month, stdMultiple, typePeriod)
+        dangerFindAllByPeriodImage = DangerScatterChartByMonthPeriod(
+            complete, Inspection, Year, Month, stdMultiple, typePeriod)
 
-#     return {"base64": dangerFindAllByPeriodImage}
+    return {"base64": dangerFindAllByPeriodImage}
 
 
 @ app.route("/graph/dangerFindAllMonth",  methods=['GET', 'POST'])
@@ -926,4 +926,4 @@ def min():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", threaded=False, debug=True,port=1000)
+    app.run(host="0.0.0.0", threaded=False, debug=True)
