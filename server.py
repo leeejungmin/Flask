@@ -67,7 +67,7 @@ title_mapping = {"HydraulicSystem": 1, "Camshaft": 2, "Cylinder": 3, "Engine": 4
 point_mapping = {'coupling': 1, 'oil': 2, 'tank': 3, 'filter(in)': 4, 'fuelRail': 5, 'bearing': 6,
                  'position(ver)': 7, 'cover': 8, 'gear': 9, 'coolant': 10, 'coolingfan': 11, 'roller': 12, 'pump': 14, 'o-ring': 15}
 item_mapping = {'alignment': 1, 'vibration': 2, 'temperature': 3,
-                    'intensity': 4, 'viscosity': 5, 'O2 saturation': 6, 'CO2 saturation': 7}
+                'intensity': 4, 'viscosity': 5, 'O2 saturation': 6, 'CO2 saturation': 7}
 
 train["year"] = train["date"].dt.year
 train["month"] = train["date"].dt.month
@@ -527,7 +527,7 @@ def SeasonGraph():
         Point = int(data['selectP'])
         Item = int(data['selectI'])
 
-        SeasonGraphImage = SeasonGraph(train, Year, Inspection, Item, Point)
+        SeasonGraphImage = SeasonGraph(complete, Year, Inspection, Item, Point)
 
     return {"base64": SeasonGraphImage}
 
@@ -558,7 +558,7 @@ def normalDis():
 #         data = request.get_json()["data"]['valueGraph']
 
 #         Inspection = int(data['selectN'])
-#         corrMattimage = corrMatt(train, Inspection)
+#         corrMattimage = corrMatt(complete, Inspection)
 
 #     return {"base64": corrMattimage}
 
@@ -576,12 +576,14 @@ def selectByYear():
         Item = int(data['selectI'])
 
         pointImage = pointPlotByYearMonth(
-            train, Year, Month, Inspection, Item)
+            complete, Year, Month, Inspection, Item)
 
     # return jsonify(data), 200
     return {"base64": pointImage}
 
-#3개년 전달
+# 3개년 전달
+
+
 @ app.route("/graph/selectByMonthThree",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def selectByMonthThree():
@@ -619,7 +621,7 @@ def compairPlotGraph():
 
         # Year = int(data['selectY'])
         # Month = int(data['selectM'])
-        
+
         # Point = int(data['selectP'])
         # Item = int(data['selectI'])
         Variable = data['data']
@@ -852,7 +854,6 @@ def rankItem():
     return {"base64": topRankBarplotImage}
 
 
-
 @ app.route("/graph/listByInspect",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
 def listByInspect():
@@ -862,15 +863,17 @@ def listByInspect():
         # Year = int(data['selectY'])
         # Month = int(data['selectM'])
         Inspection = int(data)
+        print('qweqwe', Inspection)
         # stdMultiple = int(data['stdMultiple'])
         # typePeriod = str(data['typePeriod'])
         # Point = int(data['selectP'])
         # Item = int(data['selectI'])
         # typeHue = str(data['selectH'])
 
-        ChildListOfFacilityImage = ChildListOfFacility(train, Inspection)
+        ChildListOfFacilityImage = ChildListOfFacility(complete, Inspection)
 
     return {"base64": ChildListOfFacilityImage}
+
 
 @ app.route("/graph/listNum",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
@@ -889,9 +892,11 @@ def listNum():
         Item = int(data['selectI'])
         typeHue = str(data['selectH'])
 
-        numThreeImage = numThree(complete, predictModel(complete), Year, Month, Inspection, Item, Point)
+        numThreeImage = numThree(complete, predictModel(
+            complete), Year, Month, Inspection, Item, Point)
 
     return {"base64": numThreeImage}
+
 
 @ app.route("/graph/DangerByFactor",  methods=['GET', 'POST'])
 @ cross_origin(origin='*', headers=['access-control-allow-origin', 'Content- Type', 'Authorization'])
@@ -899,7 +904,7 @@ def DangerByFactor():
     if request.method == 'POST':
 
         data = request.get_json()['data']['valueGraph']
-        print('data...asdf',data)
+        print('data...asdf', data)
         Year = int(data['selectY'])
         Month = int(data['selectM'])
         Inspection = int(data['selectN'])
@@ -922,7 +927,7 @@ def jung():
 
 @ app.route("/graph/min")
 def min():
-    return {"result": train.head(10)}
+    return {"result": complete.head(10)}
 
 
 if __name__ == "__main__":

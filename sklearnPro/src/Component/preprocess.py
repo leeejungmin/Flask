@@ -14,7 +14,6 @@ from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 from datetime import datetime
 
 
-
 def toBase64(fig):
     pic_IObytes = io.BytesIO()
     fig.savefig(pic_IObytes,  format='png')
@@ -63,11 +62,11 @@ def concatenate_year_month(datetime):
 
 def threeYearData(train, Year, Month, Inspection, item, point):
     endDate = '01/0' + str(Month) + '/' + str(Year)
-    startDate = '31/0' + str(Month) + '/' + str(Year-3)
+    startDate = '15/0' + str(Month) + '/' + str(Year-3)
 
     if(len(str(Month)) == 2):
         endDate = '01/' + str(Month) + '/' + str(Year)
-        startDate = '31/' + str(Month) + '/' + str(Year-3)
+        startDate = '15/' + str(Month) + '/' + str(Year-3)
 
     datetime_object_startDate = datetime.strptime(startDate, "%d/%m/%Y")
     datetime_object_endDate = datetime.strptime(endDate, '%d/%m/%Y')
@@ -85,12 +84,13 @@ def threeYearData(train, Year, Month, Inspection, item, point):
 
 def nameCategory(data):
     categorical_feature_names = ["Inspection Name", "holiday",
-                             "Man", "duration", "humidity", "item", "date", "result"]
+                                 "Man", "duration", "humidity", "item", "date", "result"]
     title_mapping = {"HydraulicSystem": 1, "Camshaft": 2, "Cylinder": 3, "Engine": 4,
-                    "TableRoller": 5, "Reducer": 6, "FuelRail": 7, "InterCooler": 8, "GearedMotor": 9}
+                     "TableRoller": 5, "Reducer": 6, "FuelRail": 7, "InterCooler": 8, "GearedMotor": 9}
     point_mapping = {'coupling': 1, 'oil': 2, 'tank': 3, 'filter(in)': 4, 'fuelRail': 5, 'bearing': 6,
-                    'position(ver)': 7, 'cover': 8, 'gear': 9, 'coolant': 10, 'coolingfan': 11, 'roller': 12, 'pump': 14, 'o-ring': 15}
-    item_mapping = {'alignment': 1, 'vibration': 2, 'temperature': 3,'intensity': 4, 'viscosity': 5, 'O2 saturation': 6, 'CO2 saturation': 7}
+                     'position(ver)': 7, 'cover': 8, 'gear': 9, 'coolant': 10, 'coolingfan': 11, 'roller': 12, 'pump': 14, 'o-ring': 15}
+    item_mapping = {'alignment': 1, 'vibration': 2, 'temperature': 3,
+                    'intensity': 4, 'viscosity': 5, 'O2 saturation': 6, 'CO2 saturation': 7}
     # season_mapping = {'spring': 0, 'summer': 1, 'autumn': 2, 'winter': 3}
     quater_mapping = {'Q1': 1, 'Q2': 2, 'Q3': 3, 'Q4': 4}
 
@@ -107,17 +107,37 @@ def nameCategory(data):
 
     return data
 
+
+class NumpyEncoder(json.JSONEncoder):
+    """ Special json encoder for numpy types """
+
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+
 def ChildListOfFacility(test, Inspection):
 
-    processedData = test.loc[(test["Inspection Name"] == Inspection)]
+    processedDatas = test.loc[(test["Inspection Name"] == Inspection)]
 #     processedData = processedData.drop_duplicates(subset=["point", "item"], keep=False)
 
-    processedData = nameCategory(processedData)
+    listOfPointNum = processedDatas["point"].drop_duplicates()
+    listOfItemNum = processedDatas["item"].drop_duplicates()
+
+    processedData = nameCategory(processedDatas)
     listOfPoint = processedData["point"].drop_duplicates()
     listOfItem = processedData["item"].drop_duplicates()
 
     arrPoint = []
     arrItem = []
+    arrPointNum = []
+    arrItemNum = []
+
     for i in listOfPoint:
         if(i == 'NaN'):
             pass
@@ -128,8 +148,29 @@ def ChildListOfFacility(test, Inspection):
             pass
         arrItem.append(i)
 
-    combine = arrPoint, arrItem
-    jsonString = json.dumps(combine)
+    for i in listOfPointNum:
+        if(i == 'NaN'):
+            pass
+        arrPointNum.append(i)
 
-    print(type(jsonString))
+    for i in listOfItemNum:
+        if(i == 'NaN'):
+            pass
+        arrItemNum.append(i)
+
+    arrPoint = np.array(arrPoint)
+    arrItem = np.array(arrItem)
+    arrPointNum = np.array(arrPointNum)
+    arrItemNum = np.array(arrItemNum)
+
+    # print('fdghfghj', arrPoint, arrPointNum)
+    Pointarr = np.stack((arrPoint, arrPointNum), axis=1)
+    Itemarr = np.stack((arrItem, arrItemNum), axis=1)
+
+    combine = {'point': Pointarr, 'item': Itemarr}
+    jsonString = json.dumps(combine, cls=NumpyEncoder)
+    print('asdfff', combine)
+    # jsonString = json.dumps(combine)
+    # print('qqqqqqqqqqw', jsonString)
+    # print(type(jsonString))
     return jsonString

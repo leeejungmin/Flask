@@ -161,19 +161,19 @@ def DangerScatterChartByMonth(test, year, month, stdMultiple):
     processedData = test.loc[
         (test["year"] == year) &
         (test["month"] == month)]
-        
-    if(stdMultiple==1.5):
+
+    if(stdMultiple == 1.5):
         data = processedData.loc[(processedData['result'] > processedData['result'].mean()
-                                + stdMultiple*processedData['result'].std())]
-    if(stdMultiple==1):
+                                  + stdMultiple*processedData['result'].std())]
+    if(stdMultiple == 1):
         data = processedData.loc[(processedData['result'] > processedData['result'].mean()
-                                + stdMultiple*processedData['result'].std())]
-    if(stdMultiple==0):
+                                  + stdMultiple*processedData['result'].std())]
+    if(stdMultiple == 0):
         data = processedData.loc[(processedData['result'] > processedData['result'].mean()
-                                + stdMultiple*processedData['result'].std())]
-    if(stdMultiple==-1):
+                                  + stdMultiple*processedData['result'].std())]
+    if(stdMultiple == -1):
         data = processedData.loc[(processedData['result'] < processedData['result'].mean()
-                                + stdMultiple*processedData['result'].std())]
+                                  + stdMultiple*processedData['result'].std())]
     print('ScatterMonth...........', data)
     sns.scatterplot(
         data=nameCategory(data), x='item', y='point', hue='Inspection Name', s=399,
@@ -202,13 +202,23 @@ def DangerScatterChartByMonth(test, year, month, stdMultiple):
 
 
 def DangerScatterChartByPredict(test, year, month, stdMultiple):
-    stdMultiple = 0
-    print('predict....',test,year,month,stdMultiple);
+
     processedData = test.loc[
         (test["year"] == year) &
-        (test["month"] == month+1)]
-    data = processedData.loc[(processedData['result'] > processedData['result'].mean()
-                              + stdMultiple*processedData['result'].std())]
+        (test["month"] == month)]
+
+    if(stdMultiple == 1.5):
+        data = processedData.loc[(processedData['result'] > processedData['result'].mean()
+                                  + stdMultiple*processedData['result'].std())]
+    if(stdMultiple == 1):
+        data = processedData.loc[(processedData['result'] > processedData['result'].mean()
+                                  + stdMultiple*processedData['result'].std())]
+    if(stdMultiple == 0):
+        data = processedData.loc[(processedData['result'] > processedData['result'].mean()
+                                  + stdMultiple*processedData['result'].std())]
+    if(stdMultiple == -1):
+        data = processedData.loc[(processedData['result'] < processedData['result'].mean()
+                                  + stdMultiple*processedData['result'].std())]
     sns.scatterplot(
         data=nameCategory(data), x='item', y='point', hue='Inspection Name', s=399,
         sizes=(3, 5),  legend='full'
