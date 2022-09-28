@@ -16,6 +16,8 @@ import io
 from datetime import datetime
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
+import xgboost as xgb
+from xgboost import XGBClassifier
 
 
 def frameFromPeriod(year, month, Inspection, item, point):
@@ -36,6 +38,7 @@ def frameFromPeriod(year, month, Inspection, item, point):
 def predictModel(data):
     max_depth_list = []
 
+    # facilityModel = XGBClassifier()
     facilityModel = RandomForestRegressor(n_estimators=100,
                                           n_jobs=-1,
                                           random_state=0)
@@ -96,7 +99,6 @@ def PredictByTwoTrainTest(train, test):
     facilityModel = RandomForestRegressor(n_estimators=100,
                                           n_jobs=-1,
                                           random_state=0)
-    facilityModel
 
     categorical_feature_names = [
         "Inspection Name", "point", "item", "month", "year"]
@@ -114,11 +116,10 @@ def PredictByTwoTrainTest(train, test):
     ToPredictData = test[categorical_feature_names]
 
     predictions = facilityModel.predict(ToPredictData)
-    predictions
 
     k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
 
-    rmsle_scorer = make_scorer(rmsle)
+    # score = xgb.score(X_train, Y_train)
 
     get_python_version().run_line_magic('time',
                                         'score = cross_val_score(facilityModel, X_train, Y_train, cv=k_fold, scoring=rmsle_scorer)')

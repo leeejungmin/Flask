@@ -46,7 +46,7 @@ def DangerScatterChartByInspection(test, Inspection, year, month, stdMultiple):
     data = findDangerbyInpection(test, Inspection, year, month, stdMultiple)
     print(data)
     sns.scatterplot(
-        data=nameCategory(data), x='point', y='item', hue='Inspection Name', s=200,
+        data=nameCategory(data), x='point', y='item', hue='Inspection Name', s=300,
         sizes=(20, 5),  legend='full'
     )
     plt.xticks(rotation=20, fontsize=10)
@@ -117,7 +117,7 @@ def DangerScatterChartByMonthPeriod(test, Inspection, year, month, stdMultiple, 
         test, Inspection, year, month, stdMultiple, typePeriod)
 
     g = sns.scatterplot(
-        data=nameCategory(data[0]), x='year_month', y='point', hue='item', s=50, alpha=0.9
+        data=nameCategory(data[0]), x='year_month', y='point', hue='item', s=150, alpha=0.9
     )
 
     plt.xticks(rotation=30, fontsize=5.5)
@@ -176,7 +176,7 @@ def DangerScatterChartByMonth(test, year, month, stdMultiple):
                                   + stdMultiple*processedData['result'].std())]
     print('ScatterMonth...........', data)
     sns.scatterplot(
-        data=nameCategory(data), x='item', y='point', hue='Inspection Name', s=399,
+        data=nameCategory(data), x='item', y='point', hue='Inspection Name', s=550,
         sizes=(3, 5),  legend='full'
     )
     plt.xticks(rotation=40, fontsize=13)
@@ -205,7 +205,7 @@ def DangerScatterChartByPredict(test, year, month, stdMultiple):
 
     processedData = test.loc[
         (test["year"] == year) &
-        (test["month"] == month)]
+        (test["month"] == month+1)]
 
     if(stdMultiple == 1.5):
         data = processedData.loc[(processedData['result'] > processedData['result'].mean()
@@ -220,7 +220,7 @@ def DangerScatterChartByPredict(test, year, month, stdMultiple):
         data = processedData.loc[(processedData['result'] < processedData['result'].mean()
                                   + stdMultiple*processedData['result'].std())]
     sns.scatterplot(
-        data=nameCategory(data), x='item', y='point', hue='Inspection Name', s=399,
+        data=nameCategory(data), x='item', y='point', hue='Inspection Name', s=550,
         sizes=(3, 5),  legend='full'
     )
     plt.xticks(rotation=40, fontsize=13)

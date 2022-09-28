@@ -99,8 +99,8 @@ def thisMonthRatio(test, year, month, stdMultiple):
     colors = sns.color_palette('pastel')[:n]
 
     Data.sort_values("Inspection Name", inplace=True)
-    plt.pie(arrInspectCount, labels=arrInspectName, explode=explode,
-            counterclock=False, colors=colors, shadow=True, autopct='%.0f %%')
+    plt.pie(arrInspectCount, labels=arrInspectName,
+            counterclock=False,  colors=colors, autopct='%.0f %%', textprops={'fontsize': 23})
 
     result = toBase64(plt)
     plt.clf()
