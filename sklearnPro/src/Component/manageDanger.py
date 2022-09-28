@@ -32,12 +32,12 @@ class NpEncoder(json.JSONEncoder):
 def thisMonthCount(test, Inspection, year, month):
     processedData = test.loc[(test["year"] == year) & (test["month"] == month)]
 
-    LoData = processedData.loc[(processedData['result'] < processedData['result'].mean(
-    ) + processedData['result'].std())]
+    LoData = processedData.loc[(processedData['result'] < -processedData['result'].mean(
+    ) - processedData['result'].std())]
     HiData = processedData.loc[(processedData['result'] > processedData['result'].mean() + 1.5*processedData['result'].std()) &
-                               (processedData['result'] < processedData['result'].mean() + 2*processedData['result'].std())]
+                               (processedData['result'] < processedData['result'].mean() + processedData['result'].std())]
     HiHiData = processedData.loc[(processedData['result'] > processedData['result'].mean(
-    ) + 2*processedData['result'].std())]
+    ) + 1.5*processedData['result'].std())]
 
     total = processedData['result'].count()
     Lototal = LoData['result'].count()
@@ -70,18 +70,18 @@ def thisMonthRatio(test, year, month, stdMultiple):
     processedData = test.loc[(test['year'] == year) & (test['month'] == month)]
 
     processedData = nameCategory(processedData)
-    if(stdMultiple == 1):
-        Data = processedData.loc[(processedData['result'] < processedData['result'].mean(
-        ) + processedData['result'].std())]
+    if(stdMultiple == -1):
+        Data = processedData.loc[(processedData['result'] < -processedData['result'].mean(
+        ) - processedData['result'].std())]
+    elif(stdMultiple == 0):
+        Data = processedData.loc[(processedData['result'] > processedData['result'].mean() - processedData['result'].std()) &
+                                 (processedData['result'] < processedData['result'].mean() + 0*processedData['result'].std())]
+    elif(stdMultiple == 1):
+        Data = processedData.loc[(processedData['result'] > processedData['result'].mean() + 0*processedData['result'].std()) &
+                                 (processedData['result'] < processedData['result'].mean() + 1*processedData['result'].std())]
     elif(stdMultiple == 1.5):
-        Data = processedData.loc[(processedData['result'] > processedData['result'].mean() * processedData['result'].std()) &
-                                 (processedData['result'] < processedData['result'].mean() + 1.5*processedData['result'].std())]
-    elif(stdMultiple == 2):
-        Data = processedData.loc[(processedData['result'] > processedData['result'].mean() + 2*processedData['result'].std()) &
-                                 (processedData['result'] < processedData['result'].mean() + 3*processedData['result'].std())]
-    elif(stdMultiple == 3):
         Data = processedData.loc[(processedData['result'] > processedData['result'].mean(
-        ) + 3*processedData['result'].std())]
+        ) + 1.5*processedData['result'].std())]
 
     n = Data['Inspection Name'].drop_duplicates().count()
 

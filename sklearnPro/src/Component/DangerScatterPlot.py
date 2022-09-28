@@ -17,11 +17,11 @@ from sklearnPro.src.Component.preprocess import nameCategory, toBase64
 
 mpl.use('Qt5Agg')
 
-stdMultiple = 0
+# stdMultiple = 0
 
 
 def findDangerbyInpection(test, Inspection, year, month, stdMultiple):
-    stdMultiple = 0
+    # stdMultiple = 0
 
     processedData = test.loc[(test[year] == year)],
     DangeredAllData = processedData.loc[(processedData['result'] > processedData['result'].mean(
@@ -41,7 +41,7 @@ def findDangerbyInpection(test, Inspection, year, month, stdMultiple):
 
 def DangerScatterChartByInspection(test, Inspection, year, month, stdMultiple):
 
-    stdMultiple = 0
+    # stdMultiple = 0
 
     data = findDangerbyInpection(test, Inspection, year, month, stdMultiple)
     print(data)
@@ -66,10 +66,10 @@ def DangerScatterChartByInspection(test, Inspection, year, month, stdMultiple):
 
 def findDangerbyMonthPeriod(test, Inspection, year, month, stdMultiple, typePeriod):
 
-    stdMultiple = 0
+    # stdMultiple = 0
 
     DangeredAllData = test.loc[(test['result'] > test['result'].mean(
-    ) + stdMultiple*test['result'].std())]
+    ) + 1.5*test['result'].std())]
 
     DangeredData = DangeredAllData.loc[(
         DangeredAllData['Inspection Name'] == Inspection)]
@@ -111,7 +111,7 @@ def findDangerbyMonthPeriod(test, Inspection, year, month, stdMultiple, typePeri
 
 def DangerScatterChartByMonthPeriod(test, Inspection, year, month, stdMultiple, typePeriod):
 
-    stdMultiple = 0
+    # stdMultiple = 0
 
     data = findDangerbyMonthPeriod(
         test, Inspection, year, month, stdMultiple, typePeriod)
@@ -146,7 +146,7 @@ def DangerScatterChartByMonthPeriod(test, Inspection, year, month, stdMultiple, 
 
 
 def findDangerbyMonth(test, year, month, stdMultiple):
-    stdMultiple = 0
+    # stdMultiple = 0
 
     processedData = test.loc[(test["year"] == year) & test["month"] == month]
     # DangeredAllData = processedData.loc[(processedData['result'] > processedData['result'].mean()
@@ -302,7 +302,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 def rankFiveDangerInspection(test, year, month, stdMultiple, typePeriod):
     DangeredData = test.loc[(test['result'] > test['result'].mean(
-    ) + stdMultiple*test['result'].std())]
+    ) + 1.5*test['result'].std())]
 
     DangeredData = nameCategory(DangeredData)
 

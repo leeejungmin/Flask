@@ -22,18 +22,18 @@ def topRankBarplot(test, typeName, year, stdMultiple):
     processedData = test.loc[(test['year'] == year)]
 
     processedData = nameCategory(processedData)
-    if(stdMultiple == 1):
-        Data = processedData.loc[(processedData['result'] < processedData['result'].mean(
-        ) + processedData['result'].std())]
+    if(stdMultiple == -1):
+        Data = processedData.loc[(processedData['result'] < -processedData['result'].mean(
+        ) - processedData['result'].std())]
+    elif(stdMultiple == 0):
+        Data = processedData.loc[(processedData['result'] > processedData['result'].mean() - processedData['result'].std()) &
+                                 (processedData['result'] < processedData['result'].mean() + 0*processedData['result'].std())]
+    elif(stdMultiple == 1):
+        Data = processedData.loc[(processedData['result'] > processedData['result'].mean() + 0*processedData['result'].std()) &
+                                 (processedData['result'] < processedData['result'].mean() + 1*processedData['result'].std())]
     elif(stdMultiple == 1.5):
-        Data = processedData.loc[(processedData['result'] > processedData['result'].mean() * processedData['result'].std()) &
-                                 (processedData['result'] < processedData['result'].mean() + 1.5*processedData['result'].std())]
-    elif(stdMultiple == 2):
-        Data = processedData.loc[(processedData['result'] > processedData['result'].mean() + 2*processedData['result'].std()) &
-                                 (processedData['result'] < processedData['result'].mean() + 3*processedData['result'].std())]
-    elif(stdMultiple == 3):
         Data = processedData.loc[(processedData['result'] > processedData['result'].mean(
-        ) + 3*processedData['result'].std())]
+        ) + 1.5*processedData['result'].std())]
 
     pointTopListkeys = Data.groupby(typeName).count(
     )['Inspection Name'].sort_values(ascending=False)[:3].keys()
